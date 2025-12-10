@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>学汉字</title>
+    
+    <!-- PWA Configuration -->
+    <meta name="apple-mobile-web-app-title" content="学汉字">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <!-- Icons -->
+    <link rel="icon" type="image/png" href="icon.png" />
+    <link rel="apple-touch-icon" href="icon.png" />
+    <link rel="icon" sizes="192x192" href="icon.png" />
+    
+    <!-- REQUIRED SCRIPT ORDER -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Hanzi Writer -->
+    <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5/dist/hanzi-writer.min.js"></script>
+    
+    <!-- CnChar Core + Plugins (Order Matters) -->
+    <script src="https://cdn.jsdelivr.net/npm/cnchar/cnchar.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/cnchar-poly/cnchar.poly.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/cnchar-order/cnchar.order.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/cnchar-trad/cnchar.trad.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/cnchar-radical/cnchar.radical.min.js"></script>
+
+    <!-- Configure Tailwind for Qiaoyi's Dual Theme -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        // Hanzi Mode (Pink)
+                        'qy-pink': '#FFB7C5',      
+                        'qy-dark-pink': '#FF8FAB', 
+                        'qy-text-pink': '#D63384',
+                        
+                        // English Mode (Lavender)
+                        'qy-purple': '#E0BBE4',
+                        'qy-dark-purple': '#957DAD',
+                        'qy-text-purple': '#6D28D9', // Violet 700
+                        'qy-bg-purple': '#F3E8FF',   // Purple 50
+                    },
+                    fontFamily: {
+                        'rounded': ['"Varela Round"', 'sans-serif'],
+                        'chinese': ['"Ma Shan Zheng"', '"KaiTi"', 'serif'],
+                    },
+                    animation: {
+                        'float': 'float 3s ease-in-out infinite',
+                        'pop': 'bounce-in 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55)',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        },
+                        'bounce-in': {
+                            '0%': { transform: 'scale(0.3)', opacity: '0' },
+                            '50%': { transform: 'scale(1.05)' },
+                            '70%': { transform: 'scale(0.9)' },
+                            '100%': { transform: 'scale(1)', opacity: '1' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Varela+Round&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Varela Round', "Microsoft YaHei", sans-serif;
+            transition: background-color 0.5s ease;
+        }
+        
+        /* Custom Scrollbar */
+        .stroke-scroll::-webkit-scrollbar { height: 8px; }
+        .stroke-scroll::-webkit-scrollbar-track { background: transparent; }
+        .stroke-scroll::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
+
+        /* --- CONTEXT-AWARE DOG ANIMATIONS --- */
+        
+        /* Jump: Excitement (Up/Down) */
+        @keyframes dog-jump {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-25px); }
+        }
+        .animate-dog-jump { animation: dog-jump 0.5s ease-in-out; }
+
+        /* Wiggle: Playful (Rotate Tail/Body) */
+        @keyframes dog-wiggle {
+            0%, 100% { transform: rotate(-10deg); }
+            50% { transform: rotate(10deg); }
+        }
+        .animate-dog-wiggle { animation: dog-wiggle 0.5s ease-in-out infinite; }
+
+        /* Spin: Showing Off (360 Rotate) */
+        @keyframes dog-spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .animate-dog-spin { animation: dog-spin 0.6s linear; }
+
+        /* Pulse: Love/Comfort (Scale Breath) */
+        @keyframes dog-pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+        .animate-dog-pulse { animation: dog-pulse 1s ease-in-out infinite; }
+
+        /* Generic Entrance */
+        @keyframes tada {
+            0% { transform: scale(1); }
+            10%, 20% { transform: scale(0.9) rotate(-3deg); }
+            30%, 50%, 70%, 90% { transform: scale(1.1) rotate(3deg); }
+            40%, 60%, 80% { transform: scale(1.1) rotate(-3deg); }
+            100% { transform: scale(1) rotate(0); }
+        }
+        .animate-tada { animation: tada 1s ease-in-out; }
+
+        /* Modal Blur Background */
+        .modal-backdrop {
+            background-color: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(8px);
+        }
+    </style>
+</head>
+<body class="bg-pink-50"> <!-- Default bg -->
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // --- SAFE AUDIO ENGINE (CRASH PROOF) ---
+        // cancelPrevious: If true, stops current audio. If false, adds to queue.
+        const playAudio = (text, isPuppy = false, isEnglish = false, cancelPrevious = true) => {
+            try {
+                // Safety cancel only if requested
+                if (cancelPrevious) {
+                    window.speechSynthesis.cancel();
+                }
+
+                const u = new SpeechSynthesisUtterance(text);
+                
+                // Simple Lang Logic
+                u.lang = isEnglish ? 'en-US' : 'zh-CN';
+
+                if (isPuppy) {
+                    // PUPPY SETTINGS: High Pitch = Cute
+                    u.pitch = 1.5; 
+                    u.rate = 1.1; 
+                } else {
+                    // TEACHER SETTINGS: Normal Pitch, Slow
+                    u.pitch = 1.0; 
+                    u.rate = 0.85; 
+                }
+
+                window.speechSynthesis.speak(u);
+            } catch (err) {
+                console.warn("Audio error (ignored to prevent crash):", err);
+            }
+        };
+
+        // --- MASCOT DIALOGUE DATABASE (Refactored with Actions) ---
+        
+        const CN_DIALOGUES = [
+            { text: "乔依，你是世界上最棒的一年级小学生！", action: "jump" },
+            { text: "汪汪！乔依，我也想要一件粉色的新衣服！", action: "wiggle" },
+            { text: "乔依，写累了吗？摸摸我的头休息一下吧。", action: "pulse" },
+            { text: "乔依加油！我们属狗的小朋友不仅可爱，还很努力！", action: "jump" },
+            { text: "哇！乔依写字越来越好看了，我要给你比个心！", action: "pulse" },
+            { text: "乔依，你知道吗？我最喜欢看你认真的样子。", action: "pulse" },
+            { text: "嘿嘿，乔依，你看我的尾巴摇得快不快？", action: "wiggle" },
+            { text: "乔依，今天的作业我们一定能拿一百分！", action: "jump" },
+            { text: "乔依，不要怕犯错，我会一直陪着你的。", action: "pulse" },
+            { text: "乔依，这个字虽然难，但是你一定行！", action: "jump" },
+            { text: "乔依，我们休息一会，唱首儿歌好不好？", action: "wiggle" },
+            { text: "乔依，你就像春天的花朵一样可爱！", action: "pulse" },
+            { text: "乔依，今天在学校开心吗？快告诉我！", action: "wiggle" },
+            { text: "乔依，我是你的守护小狗，我会永远保护你！", action: "pulse" },
+            { text: "乔依，快看，我学会了新的跳舞动作！", action: "spin" }
+        ];
+
+        const EN_DIALOGUES = [
+            { en: "Winnie, you are amazing!", cn: "Winnie，你太棒了！", action: "jump" },
+            { en: "Good morning, Winnie! Ready to learn?", cn: "早上好Winnie！准备好学习了吗？", action: "jump" },
+            { en: "Winnie, look at this letter!", cn: "Winnie，看这个字母！", action: "wiggle" },
+            { en: "You represent the Year of the Dog, Winnie!", cn: "Winnie，你是属狗的小代表哦！", action: "wiggle" },
+            { en: "Winnie, is your favorite color pink?", cn: "Winnie，你最喜欢的颜色是粉色吗？", action: "wiggle" },
+            { en: "High five, Winnie!", cn: "Winnie，击个掌！", action: "jump" },
+            { en: "I am your best friend, Winnie.", cn: "Winnie，我是你最好的朋友。", action: "pulse" },
+            { en: "Winnie, keep going!", cn: "Winnie，继续加油！", action: "jump" },
+            { en: "What a beautiful day, Winnie.", cn: "Winnie，今天天气真好。", action: "wiggle" },
+            { en: "Winnie, you speak English very well.", cn: "Winnie，你的英语说得很好。", action: "spin" },
+            { en: "Let's play a game, Winnie.", cn: "Winnie，我们来玩个游戏吧。", action: "spin" },
+            { en: "Winnie, do you like apples?", cn: "Winnie，你喜欢苹果吗？", action: "wiggle" },
+            { en: "Listen carefully, Winnie.", cn: "Winnie，仔细听哦。", action: "pulse" },
+            { en: "You are so smart, Winnie.", cn: "Winnie，你真聪明。", action: "jump" },
+            { en: "See you tomorrow, Winnie.", cn: "Winnie，明天见。", action: "pulse" }
+        ];
+
+        // --- Data: Phonics (A-Z) with Translations ---
+        const PHONICS_DATA = [
+            { id: 'A', word: 'Apple', meaning: '苹果', emoji: '🍎', options: ['A', 'O', 'U'] },
+            { id: 'B', word: 'Bear', meaning: '小熊', emoji: '🐻', options: ['B', 'P', 'D'] },
+            { id: 'C', word: 'Cat', meaning: '小猫', emoji: '🐱', options: ['C', 'K', 'S'] },
+            { id: 'D', word: 'Dog', meaning: '小狗', emoji: '🐶', options: ['D', 'B', 'P'] },
+            { id: 'E', word: 'Egg', meaning: '鸡蛋', emoji: '🥚', options: ['E', 'I', 'A'] },
+            { id: 'F', word: 'Fish', meaning: '小鱼', emoji: '🐟', options: ['F', 'T', 'V'] },
+            { id: 'G', word: 'Girl', meaning: '女孩', emoji: '👧', options: ['G', 'J', 'K'] },
+            { id: 'H', word: 'Happy', meaning: '开心', emoji: '😄', options: ['H', 'M', 'N'] },
+            { id: 'I', word: 'Ice', meaning: '冰块', emoji: '🧊', options: ['I', 'E', 'L'] },
+            { id: 'J', word: 'Juice', meaning: '果汁', emoji: '🧃', options: ['J', 'G', 'Y'] },
+            { id: 'K', word: 'Kite', meaning: '风筝', emoji: '🪁', options: ['K', 'C', 'X'] },
+            { id: 'L', word: 'Lion', meaning: '狮子', emoji: '🦁', options: ['L', 'I', 'R'] },
+            { id: 'M', word: 'Moon', meaning: '月亮', emoji: '🌙', options: ['M', 'N', 'W'] },
+            { id: 'N', word: 'Nose', meaning: '鼻子', emoji: '👃', options: ['N', 'M', 'U'] },
+            { id: 'O', word: 'Orange', meaning: '橙子', emoji: '🍊', options: ['O', 'A', 'Q'] },
+            { id: 'P', word: 'Pig', meaning: '小猪', emoji: '🐷', options: ['P', 'B', 'D'] },
+            { id: 'Q', word: 'Queen', meaning: '女王', emoji: '👸', options: ['Q', 'O', 'P'] },
+            { id: 'R', word: 'Rabbit', meaning: '兔子', emoji: '🐰', options: ['R', 'P', 'B'] },
+            { id: 'S', word: 'Sun', meaning: '太阳', emoji: '☀️', options: ['S', 'C', 'Z'] },
+            { id: 'T', word: 'Tiger', meaning: '老虎', emoji: '🐯', options: ['T', 'F', 'L'] },
+            { id: 'U', word: 'Umbrella', meaning: '雨伞', emoji: '☂️', options: ['U', 'V', 'Y'] },
+            { id: 'V', word: 'Van', meaning: '货车', emoji: '🚐', options: ['V', 'W', 'U'] },
+            { id: 'W', word: 'Water', meaning: '水', emoji: '💧', options: ['W', 'M', 'V'] },
+            { id: 'X', word: 'Box', meaning: '盒子', emoji: '📦', options: ['X', 'S', 'K'] },
+            { id: 'Y', word: 'Yo-yo', meaning: '溜溜球', emoji: '🪀', options: ['Y', 'I', 'J'] },
+            { id: 'Z', word: 'Zebra', meaning: '斑马', emoji: '🦓', options: ['Z', 'S', 'X'] },
+        ];
+
+        // --- Shared Components ---
+
+        // Custom Chinese Knot Icon (SVG)
+        const ChineseKnotIcon = () => (
+             <svg width="34" height="34" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-sm">
+                <defs>
+                    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                        <feGaussianBlur stdDeviation="2" result="blur" />
+                        <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                    </filter>
+                </defs>
+                <rect x="34" y="34" width="32" height="32" transform="rotate(45 50 50)" fill="#D32F2F" stroke="#B71C1C" strokeWidth="2" />
+                <path d="M50 34 C50 20, 65 20, 65 35" stroke="#D32F2F" strokeWidth="4" fill="none" transform="rotate(-45 50 50)" />
+                <path d="M50 34 C50 20, 35 20, 35 35" stroke="#D32F2F" strokeWidth="4" fill="none" transform="rotate(45 50 50)" />
+                <path d="M50 66 C50 80, 65 80, 65 65" stroke="#D32F2F" strokeWidth="4" fill="none" transform="rotate(45 50 50)" />
+                <path d="M50 66 C50 80, 35 80, 35 65" stroke="#D32F2F" strokeWidth="4" fill="none" transform="rotate(-45 50 50)" />
+                <line x1="50" y1="74" x2="50" y2="95" stroke="#D32F2F" strokeWidth="4" strokeLinecap="round" />
+                <line x1="42" y1="78" x2="42" y2="92" stroke="#D32F2F" strokeWidth="2" strokeLinecap="round" />
+                <line x1="58" y1="78" x2="58" y2="92" stroke="#D32F2F" strokeWidth="2" strokeLinecap="round" />
+                <rect x="42" y="42" width="16" height="16" transform="rotate(45 50 50)" fill="#FFCDD2" />
+            </svg>
+        );
+
+        // --- MASCOT COMPONENT (Redesigned for Middle-Right Position) ---
+        const Mascot = ({ mode, status }) => {
+            const isEnglish = mode === 'english';
+            const [currentAnim, setCurrentAnim] = useState('');
+            const [dialogue, setDialogue] = useState(null);
+            
+            useEffect(() => {
+                if (status === 'success') {
+                    setCurrentAnim('animate-tada'); 
+                } else {
+                    setCurrentAnim('');
+                    setDialogue(null); 
+                }
+            }, [status]);
+
+            const handleInteraction = (e) => {
+                e.stopPropagation();
+                
+                const list = isEnglish ? EN_DIALOGUES : CN_DIALOGUES;
+                const item = list[Math.floor(Math.random() * list.length)];
+                
+                setDialogue(isEnglish ? item.en : item.text);
+
+                // Map ACTION to CSS CLASS
+                let animClass = 'animate-tada';
+                if (item.action === 'jump') animClass = 'animate-dog-jump';
+                if (item.action === 'wiggle') animClass = 'animate-dog-wiggle';
+                if (item.action === 'spin') animClass = 'animate-dog-spin';
+                if (item.action === 'pulse') animClass = 'animate-dog-pulse';
+
+                setCurrentAnim(animClass);
+
+                // Safe Audio Call
+                if (isEnglish) {
+                    playAudio(item.en, true, true);
+                } else {
+                    playAudio(item.text, true, false);
+                }
+
+                setTimeout(() => {
+                    setCurrentAnim('');
+                }, 1000); 
+            };
+
+            return (
+                <div className="relative flex flex-col items-center group">
+                    {/* Speech Bubble - Pops Left */}
+                    {dialogue && (
+                        <div className="absolute right-[110%] top-1/2 -translate-y-1/2 w-48 z-[201] animate-pop pointer-events-none">
+                            <div className={`bg-white p-3 rounded-2xl shadow-xl border-2 text-center relative
+                                ${isEnglish ? 'border-qy-purple text-qy-text-purple' : 'border-qy-pink text-qy-text-pink'}`}>
+                                <p className="text-sm font-bold leading-tight">{dialogue}</p>
+                                <div className={`absolute top-1/2 -translate-y-1/2 -right-[12px] w-0 h-0 border-t-[8px] border-t-transparent border-b-[8px] border-b-transparent border-l-[12px]
+                                    ${isEnglish ? 'border-l-qy-purple' : 'border-l-qy-pink'}`}></div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Dog Emoji - Scaled for fixed position */}
+                    <div 
+                        onClick={handleInteraction}
+                        className={`text-6xl sm:text-7xl filter drop-shadow-lg cursor-pointer hover:scale-110 active:scale-95 transition-transform relative z-10 ${currentAnim}`}
+                        role="button"
+                        aria-label="Interact with Mascot"
+                    >
+                        🐶
+                    </div>
+                </div>
+            );
+        };
+
+        // --- HANZI VIEW COMPONENTS ---
+
+        const MiZiGe = () => (
+            <svg viewBox="0 0 300 300" style={{ width: '100%', height: '100%' }}>
+                <rect x="0" y="0" width="300" height="300" fill="white" rx="20" />
+                <rect x="4" y="4" width="292" height="292" fill="none" stroke="#FFB7C5" strokeWidth="4" rx="20" />
+                <line x1="0" y1="0" x2="300" y2="300" stroke="#FFCCD5" strokeWidth="2" strokeDasharray="8,8" />
+                <line x1="300" y1="0" x2="0" y2="300" stroke="#FFCCD5" strokeWidth="2" strokeDasharray="8,8" />
+                <line x1="150" y1="0" x2="150" y2="300" stroke="#FFCCD5" strokeWidth="2" strokeDasharray="8,8" />
+                <line x1="0" y1="150" x2="300" y2="150" stroke="#FFCCD5" strokeWidth="2" strokeDasharray="8,8" />
+            </svg>
+        );
+
+        const HanziPlayer = ({ char, mode, onMistake, onCorrect, onComplete }) => {
+            const containerRef = useRef(null);
+            const writerRef = useRef(null);
+
+            useEffect(() => {
+                if (containerRef.current) containerRef.current.innerHTML = ""; 
+                if (!char) return;
+
+                const timer = setTimeout(() => {
+                    if (!containerRef.current || !window.HanziWriter) return;
+                    try {
+                        const writer = HanziWriter.create(containerRef.current, char, {
+                            width: 300,
+                            height: 300,
+                            padding: 20,
+                            showOutline: true,
+                            strokeAnimationSpeed: 1, 
+                            delayBetweenStrokes: 500,
+                            coloring: 'auto',
+                            radicalColor: '#D63384',
+                            strokeColor: '#333333',
+                            outlineColor: '#FFCCD5',
+                            drawingWidth: 30,
+                            charDataLoader: (char, onComplete) => {
+                                fetch(`https://cdn.jsdelivr.net/npm/hanzi-writer-data@2.0/${char}.json`)
+                                    .then(res => res.json())
+                                    .then(onComplete)
+                                    .catch(err => console.error("Fetch Failed:", err));
+                            },
+                            onLoadCharDataSuccess: (data) => {
+                                writer.showCharacter(); 
+                                if (mode === 'animate') {
+                                    writer.animateCharacter({ loop: true });
+                                } else if (mode === 'quiz') {
+                                    writer.quiz({
+                                        onMistake: onMistake,
+                                        onCorrectStroke: onCorrect,
+                                        onComplete: onComplete
+                                    });
+                                }
+                            },
+                            onLoadCharDataError: (err) => console.error("Writer Load Error:", err)
+                        });
+                        writerRef.current = writer;
+                    } catch (e) {
+                        console.error("Crash during create:", e);
+                    }
+                }, 500); 
+
+                return () => {
+                    clearTimeout(timer);
+                    if (writerRef.current) {
+                        try { writerRef.current.cancelQuiz(); } catch(e){}
+                    }
+                };
+            }, [char, mode]); 
+
+            return (
+                <div className="relative animate-pop mx-auto" style={{ width: '300px', height: '300px', borderRadius: '30px', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.05)', border: '6px solid white', background: 'white' }}>
+                    <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 0 }}><MiZiGe /></div>
+                    <div ref={containerRef} style={{ width: '300px', height: '300px', position: 'relative', zIndex: 10, cursor: 'pointer' }} />
+                </div>
+            );
+        };
+
+        const HanziView = ({ setMascotStatus }) => {
+            const [inputValue, setInputValue] = useState('');
+            const [charData, setCharData] = useState(null);
+            const [selectedPinyin, setSelectedPinyin] = useState('');
+            const [mode, setMode] = useState('animate'); 
+            const [feedback, setFeedback] = useState(''); 
+            const [error, setError] = useState(null);
+
+            useEffect(() => {
+                setTimeout(() => handleSearch('乔'), 100);
+            }, []);
+
+            const handleSearch = (charOverride) => {
+                setError(null);
+                setFeedback('');
+                setMascotStatus('idle');
+                const text = typeof charOverride === 'string' ? charOverride : inputValue;
+                
+                // Audio: Teacher Voice
+                if (!text) {
+                    playAudio("请输入一个汉字，我来帮你学习", false, false);
+                    return;
+                }
+
+                const char = text.trim()[0]; 
+                if (!/[\u4e00-\u9fa5]/.test(char)) {
+                    setError('请输入中文汉字哦~');
+                    return;
+                }
+                try {
+                    if (typeof cnchar === 'undefined') throw new Error('Loading...');
+                    const pinyins = cnchar.spell(char, 'array', 'tone');
+                    const strokeNames = cnchar.stroke(char, 'order', 'name');
+                    const strokesCount = cnchar.stroke(char);
+                    const radical = cnchar.radical(char);
+                    
+                    setCharData({
+                        char,
+                        pinyins: Array.isArray(pinyins) ? pinyins : [pinyins],
+                        strokeNames: Array.isArray(strokeNames) ? strokeNames : [],
+                        strokesCount,
+                        radical,
+                        id: Date.now() 
+                    });
+                    setSelectedPinyin(Array.isArray(pinyins) ? pinyins[0] : pinyins);
+                    setMode('animate'); 
+                    setInputValue(''); 
+                    if(typeof charOverride === 'string') setInputValue(char);
+
+                    // Audio: Teacher Voice (Read Character)
+                    playAudio(char, false, false);
+
+                } catch (e) {
+                    setError('加载失败，请检查网络~');
+                }
+            };
+
+            const handleComplete = () => {
+                setFeedback('太棒了！💯');
+                setMascotStatus('success');
+                // Audio: Puppy Voice (Praise)
+                playAudio("汪汪！乔依写得真好！", true, false);
+                setTimeout(() => setMascotStatus('idle'), 3000);
+            };
+
+            const readPinyin = (p) => {
+                setSelectedPinyin(p); 
+                // Audio: Teacher Voice
+                playAudio(charData.char, false, false);
+            };
+
+            // Audio: Read stroke name
+            const readStroke = (name) => {
+                playAudio(name, false, false);
+            }
+
+            return (
+                <div className="w-full max-w-lg px-4 flex flex-col items-center pt-2 pb-32">
+                    {/* Search */}
+                    <div className="w-full flex gap-3 mb-4">
+                        <div className="flex-1 bg-white rounded-full shadow-sm border-2 border-qy-pink flex items-center px-4 focus-within:ring-4 ring-pink-100 transition-all">
+                            <span className="text-qy-pink text-xl">🔍</span>
+                            <input 
+                                type="text" 
+                                className="w-full py-2 px-2 text-xl font-chinese text-center outline-none bg-transparent placeholder-pink-200 text-qy-text-pink"
+                                placeholder="输入汉字..."
+                                value={inputValue}
+                                onChange={(e) => setInputValue(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                                maxLength={1}
+                            />
+                        </div>
+                        <button onClick={() => handleSearch()} className="bg-qy-text-pink hover:bg-pink-600 text-white font-bold py-2 px-6 rounded-full shadow-md active:scale-95 border-2 border-transparent">
+                            学习
+                        </button>
+                    </div>
+
+                    {error && <div className="w-full bg-white text-qy-text-pink px-4 py-3 rounded-2xl mb-6 text-sm font-bold text-center border-2 border-pink-100 shadow-sm">{error}</div>}
+
+                    {charData ? (
+                        <div className="w-full flex flex-col items-center">
+                            <div className="flex flex-wrap justify-center gap-3 mb-6">
+                                {charData.pinyins.map((p, idx) => (
+                                    <button key={idx} onClick={() => readPinyin(p)} className={`px-5 py-2 rounded-2xl text-xl font-black font-rounded transition-all border-b-4 ${selectedPinyin === p ? 'bg-qy-pink text-white border-pink-400 scale-105' : 'bg-white text-pink-300 border-pink-100 hover:bg-pink-50'}`}>
+                                        {p}
+                                    </button>
+                                ))}
+                                <button onClick={() => playAudio(charData.char, false, false)} className="w-10 h-10 flex items-center justify-center bg-white text-qy-text-pink rounded-full shadow-sm hover:scale-110 border-2 border-pink-100">🔊</button>
+                            </div>
+
+                            <div className="relative mb-8 w-full flex justify-center items-end">
+                                <div className="relative">
+                                    <HanziPlayer 
+                                        key={charData.id + mode} 
+                                        char={charData.char} mode={mode}
+                                        onMistake={() => {setFeedback('加油！'); setTimeout(()=>setFeedback(''), 1000)}}
+                                        onCorrect={() => {setFeedback('对啦！'); setTimeout(()=>setFeedback(''), 800)}}
+                                        onComplete={handleComplete}
+                                    />
+                                    {feedback && <div className="absolute -top-16 left-1/2 transform -translate-x-1/2 pointer-events-none z-30 w-full text-center"><span className="bg-qy-text-pink text-white px-4 py-2 rounded-xl font-bold shadow-xl text-lg animate-bounce border-2 border-white">{feedback}</span></div>}
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4 w-full mb-8 max-w-xs">
+                                <button onClick={() => setMode('animate')} className={`py-3 rounded-2xl font-bold transition-all shadow-md active:scale-95 flex items-center justify-center gap-2 text-lg border-b-4 ${mode === 'animate' ? 'bg-qy-pink text-white border-pink-400' : 'bg-white text-pink-400 border-pink-100'}`}>👀 看动画</button>
+                                <button onClick={() => setMode('quiz')} className={`py-3 rounded-2xl font-bold transition-all shadow-md active:scale-95 flex items-center justify-center gap-2 text-lg border-b-4 ${mode === 'quiz' ? 'bg-qy-text-pink text-white border-pink-700' : 'bg-white text-pink-400 border-pink-100'}`}>✍️ 写写看</button>
+                            </div>
+                            
+                            <div className="w-full mb-6 bg-white p-4 rounded-3xl shadow-sm border border-pink-100">
+                                <p className="text-xs text-pink-400 font-bold uppercase mb-3 ml-1">🎨 笔画顺序 ({charData.strokesCount}) - 点击读音</p>
+                                <div className="flex flex-wrap gap-2 w-full px-1">
+                                    {charData.strokeNames.map((name, i) => {
+                                        const displayName = typeof name === 'string' ? name.split('').join(' ') : name;
+                                        return (
+                                            <button 
+                                                key={i} 
+                                                onClick={() => readStroke(typeof name === 'string' ? name : '')}
+                                                className="bg-pink-100 text-pink-600 px-3 py-1 rounded-full text-sm font-bold border border-pink-200 hover:bg-pink-200 active:scale-95 transition-colors"
+                                            >
+                                                <span className="text-[10px] opacity-60 mr-1">{i + 1}.</span>
+                                                {displayName}
+                                            </button>
+                                        )
+                                    })}
+                                </div>
+                            </div>
+                        </div>
+                    ) : null}
+                </div>
+            );
+        };
+
+        // --- ENGLISH VIEW COMPONENTS ---
+
+        const EnglishView = ({ setMascotStatus }) => {
+            const [selectedItem, setSelectedItem] = useState(null); 
+            const [gameStatus, setGameStatus] = useState('playing'); 
+
+            const selectLetter = (item) => {
+                setSelectedItem(item);
+                setGameStatus('playing');
+                setMascotStatus('idle');
+                // Audio: Teacher Voice (Letter)
+                playAudio(item.id, false, true);
+            };
+
+            const closeModal = () => {
+                setSelectedItem(null);
+            }
+
+            const playWordAudio = () => {
+                if(!selectedItem) return;
+                // Audio: Teacher Voice (Word)
+                playAudio(selectedItem.word, false, true);
+            };
+
+            const checkAnswer = (letter) => {
+                if (gameStatus === 'success') return;
+                
+                if (letter === selectedItem.id || letter === selectedItem.id.toLowerCase()) {
+                    setGameStatus('success');
+                    setMascotStatus('success');
+                    
+                    // SEQUENCE: 
+                    // 1. Teacher Voice: Word (English)
+                    playAudio(selectedItem.word, false, true, true); 
+                    
+                    // 2. Teacher Voice: Meaning (Chinese) - Queued (cancelPrevious=false)
+                    playAudio(selectedItem.meaning, false, false, false);
+                    
+                    // 3. Puppy Voice: Praise - Queued
+                    playAudio("Good job, Winnie!", true, true, false);
+                    
+                    setTimeout(() => setMascotStatus('idle'), 4000); 
+                } else {
+                    // Audio: Teacher Voice (Correction)
+                    playAudio("Try again!", false, true, true);
+                }
+            };
+
+            return (
+                <div className="w-full max-w-lg px-4 flex flex-col items-center pt-2 pb-32">
+                    
+                    {/* Grid List - UPDATED TO MINIMALIST DESIGN */}
+                    <div className="w-full max-w-2xl">
+                        <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
+                            {PHONICS_DATA.map(item => (
+                                <button 
+                                    key={item.id}
+                                    onClick={() => selectLetter(item)}
+                                    className="aspect-square bg-white rounded-2xl shadow-md border border-gray-50 flex flex-col items-center justify-center hover:scale-105 transition-transform hover:shadow-lg active:scale-95 overflow-hidden"
+                                >
+                                    <span className="text-5xl font-bold text-qy-text-purple font-rounded mb-1">
+                                        {item.id}{item.id.toLowerCase()}
+                                    </span>
+                                    <span className="text-lg">{item.emoji}</span>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* FOCUS MODAL - REFACTORED FOR FULL SCREEN */}
+                    {selectedItem && (
+                        <div className="fixed inset-0 z-[150] bg-white w-screen h-screen overflow-y-auto overscroll-contain animate-pop">
+                            
+                            {/* Back Button */}
+                            <div className="absolute top-6 left-6 z-[160]">
+                                <button 
+                                    onClick={closeModal}
+                                    className="flex items-center gap-2 px-5 py-3 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded-full font-bold text-lg shadow-sm transition-colors"
+                                >
+                                    <span>🔙</span>
+                                    <span>返回</span>
+                                </button>
+                            </div>
+
+                            {/* Main Content Container - Centered Vertically & Horizontally, Pr-20 for Mascot */}
+                            <div className="min-h-screen w-full flex flex-col items-center justify-center pt-24 pb-12 pr-20 relative">
+                                
+                                {/* Background Decoration */}
+                                <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-purple-50 to-white -z-10"></div>
+
+                                {/* Icon */}
+                                <div className="bg-white p-6 rounded-[30px] shadow-lg mb-6 border-4 border-purple-50 animate-float">
+                                    <span className="text-8xl">{selectedItem.emoji}</span>
+                                </div>
+
+                                {/* Meaning Badge */}
+                                <div className="mb-6">
+                                    <span className="text-2xl font-chinese font-bold text-qy-text-purple bg-purple-100 px-6 py-2 rounded-full border border-purple-200 shadow-sm">
+                                        {selectedItem.meaning}
+                                    </span>
+                                </div>
+                                
+                                {/* Large Letters */}
+                                <div className="mb-8">
+                                    <span className="text-[9rem] leading-none font-bold text-qy-text-purple font-rounded tracking-tight drop-shadow-sm">
+                                        {selectedItem.id}{selectedItem.id.toLowerCase()}
+                                    </span>
+                                </div>
+
+                                {/* Listen Button */}
+                                <button 
+                                    onClick={playWordAudio}
+                                    className="bg-qy-text-purple text-white px-10 py-4 rounded-full font-bold shadow-xl active:scale-95 hover:bg-violet-600 transition-all flex items-center gap-3 text-xl mb-10"
+                                >
+                                    🔊 Listen
+                                </button>
+
+                                {/* Divider */}
+                                <div className="w-64 h-1 bg-purple-100 rounded-full mb-10"></div>
+
+                                {/* Spelling Game Section */}
+                                <div className="flex flex-col items-center w-full px-4">
+                                    <h3 className="text-qy-text-purple font-bold mb-6 text-xl tracking-wide uppercase opacity-80">🧩 Spelling Fun</h3>
+                                    
+                                    <div className="flex items-center gap-3 mb-8 text-5xl font-bold text-gray-700">
+                                        <div className={`w-20 h-24 rounded-2xl flex items-center justify-center border-b-[6px] transition-colors duration-300
+                                            ${gameStatus === 'success' ? 'bg-green-100 border-green-300 text-green-600' : 'bg-gray-100 border-gray-300 text-transparent'}`}>
+                                            {selectedItem.id}
+                                        </div>
+                                        <span className="tracking-widest opacity-40">{selectedItem.word.substring(1).toUpperCase()}</span>
+                                    </div>
+
+                                    <div className="flex gap-4 flex-wrap justify-center">
+                                        {selectedItem.options.sort(() => Math.random() - 0.5).map((opt, i) => (
+                                            <button
+                                                key={i}
+                                                onClick={() => checkAnswer(opt)}
+                                                className={`w-20 h-20 rounded-2xl text-3xl font-bold shadow-lg border-b-[6px] transition-all active:scale-90 flex items-center justify-center
+                                                ${gameStatus === 'success' && opt === selectedItem.id 
+                                                    ? 'bg-green-400 text-white border-green-600 scale-110' 
+                                                    : 'bg-white text-qy-text-purple border-purple-100 hover:bg-purple-50'}`}
+                                            >
+                                                {opt}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    {gameStatus === 'success' && <p className="mt-8 text-green-500 font-bold animate-bounce text-2xl">Good job! 🌟</p>}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        // --- MAIN APP ---
+
+        const App = () => {
+            const [currentMode, setCurrentMode] = useState('hanzi'); // 'hanzi' | 'english'
+            const [mascotStatus, setMascotStatus] = useState('idle');
+
+            // Handle Theme switching on Body
+            useEffect(() => {
+                if (currentMode === 'hanzi') {
+                    document.body.className = 'bg-pink-50 transition-colors duration-500';
+                } else {
+                    document.body.className = 'bg-purple-50 transition-colors duration-500';
+                }
+            }, [currentMode]);
+
+            return (
+                <div className="min-h-screen flex flex-col items-center relative overflow-hidden">
+                    
+                    {/* Top Tab Bar - Simplified */}
+                    <div className={`w-full py-3 px-4 flex items-center justify-between sticky top-0 z-40 shadow-sm transition-colors duration-300
+                        ${currentMode === 'hanzi' ? 'bg-qy-pink' : 'bg-qy-purple'}`}>
+                        
+                        {/* Title Section */}
+                        <div className="flex items-center gap-2 text-white">
+                            <span className="text-2xl drop-shadow-sm shrink-0">
+                                {currentMode === 'hanzi' ? <ChineseKnotIcon /> : '🦄'}
+                            </span>
+                            <h1 className="text-lg font-black font-chinese tracking-widest drop-shadow-md truncate leading-tight">
+                                {currentMode === 'hanzi' ? '王乔依的汉字乐园' : 'Winnie\'s English Park'}
+                            </h1>
+                        </div>
+
+                        {/* Switcher */}
+                        <div className="bg-white/30 p-1 rounded-full flex scale-90 shrink-0">
+                            <button 
+                                onClick={() => setCurrentMode('hanzi')}
+                                className={`px-3 py-1 rounded-full text-xs font-bold transition-all whitespace-nowrap ${currentMode === 'hanzi' ? 'bg-white text-qy-text-pink shadow-sm' : 'text-white hover:bg-white/20'}`}
+                            >
+                                汉字
+                            </button>
+                            <button 
+                                onClick={() => setCurrentMode('english')}
+                                className={`px-3 py-1 rounded-full text-xs font-bold transition-all whitespace-nowrap ${currentMode === 'english' ? 'bg-white text-qy-text-purple shadow-sm' : 'text-white hover:bg-white/20'}`}
+                            >
+                                Eng
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Main Content Area */}
+                    <div className="w-full flex justify-center relative">
+                        {currentMode === 'hanzi' ? (
+                            <HanziView setMascotStatus={setMascotStatus} />
+                        ) : (
+                            <EnglishView setMascotStatus={setMascotStatus} />
+                        )}
+                    </div>
+
+                    {/* Floating Mascot (Fixed Middle Right with High Z-Index) */}
+                    <div className="fixed right-4 top-1/2 -translate-y-1/2 z-[200]">
+                        <Mascot mode={currentMode} status={mascotStatus} />
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

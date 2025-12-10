@@ -1,0 +1,5 @@
+{
+  "name": "study",
+  "description": "A dynamic, single-file React application for Grade 1 students to learn Chinese characters with stroke animations and pronunciation.",
+  "requestFramePermissions": []
+}
