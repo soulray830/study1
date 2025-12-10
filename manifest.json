@@ -1,0 +1,22 @@
+{
+  "short_name": "学汉字",
+  "name": "王乔依的汉字乐园",
+  "icons": [
+    {
+      "src": "icon.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "icon.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "index.html",
+  "background_color": "#FFF0F5",
+  "display": "standalone",
+  "scope": "/",
+  "theme_color": "#FFB7C5",
+  "orientation": "portrait"
+}

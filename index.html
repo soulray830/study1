@@ -2,10 +2,11 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>学汉字</title>
     
     <!-- PWA Configuration -->
+    <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-title" content="学汉字">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
@@ -82,6 +83,8 @@
         body {
             font-family: 'Varela Round', "Microsoft YaHei", sans-serif;
             transition: background-color 0.5s ease;
+            /* Prevent bouncing on iOS */
+            overscroll-behavior-y: none;
         }
         
         /* Custom Scrollbar */
@@ -307,13 +310,27 @@
                 }, 1000); 
             };
 
+            const handleCloseDialogue = (e) => {
+                e.stopPropagation();
+                setDialogue(null);
+            };
+
             return (
                 <div className="relative flex flex-col items-center group">
                     {/* Speech Bubble - Pops Left */}
                     {dialogue && (
-                        <div className="absolute right-[110%] top-1/2 -translate-y-1/2 w-48 z-[201] animate-pop pointer-events-none">
+                        <div 
+                            onClick={handleCloseDialogue}
+                            className="absolute right-[110%] top-1/2 -translate-y-1/2 w-48 z-[201] animate-pop cursor-pointer"
+                            role="button"
+                            aria-label="Close dialogue"
+                        >
                             <div className={`bg-white p-3 rounded-2xl shadow-xl border-2 text-center relative
                                 ${isEnglish ? 'border-qy-purple text-qy-text-purple' : 'border-qy-pink text-qy-text-pink'}`}>
+                                
+                                {/* Close Button */}
+                                <div className="absolute -top-2 -left-2 w-6 h-6 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-400 font-bold shadow-sm hover:text-red-500 z-10">✕</div>
+                                
                                 <p className="text-sm font-bold leading-tight">{dialogue}</p>
                                 <div className={`absolute top-1/2 -translate-y-1/2 -right-[12px] w-0 h-0 border-t-[8px] border-t-transparent border-b-[8px] border-b-transparent border-l-[12px]
                                     ${isEnglish ? 'border-l-qy-purple' : 'border-l-qy-pink'}`}></div>
@@ -582,10 +599,11 @@
                 setSelectedItem(null);
             }
 
-            const playWordAudio = () => {
+            // Updated to pronounce the letter (ID) instead of the word
+            const playLetterAudio = () => {
                 if(!selectedItem) return;
-                // Audio: Teacher Voice (Word)
-                playAudio(selectedItem.word, false, true);
+                // Audio: Teacher Voice (Letter ID) e.g., "A"
+                playAudio(selectedItem.id, false, true);
             };
 
             const checkAnswer = (letter) => {
@@ -633,84 +651,105 @@
                         </div>
                     </div>
 
-                    {/* FOCUS MODAL - REFACTORED FOR FULL SCREEN */}
+                    {/* FOCUS MODAL - BEAUTIFIED FULL SCREEN */}
                     {selectedItem && (
-                        <div className="fixed inset-0 z-[150] bg-white w-screen h-screen overflow-y-auto overscroll-contain animate-pop">
+                        <div className="fixed inset-0 z-[150] bg-gradient-to-br from-purple-50 via-white to-pink-50 w-screen h-screen overflow-y-auto overscroll-contain animate-pop flex flex-col">
                             
+                            {/* Decorative Background Elements */}
+                            <div className="absolute top-[-10%] right-[-10%] w-[50vh] h-[50vh] bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-float pointer-events-none"></div>
+                            <div className="absolute bottom-[-10%] left-[-10%] w-[50vh] h-[50vh] bg-pink-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-float pointer-events-none" style={{animationDelay: '1.5s'}}></div>
+
                             {/* Back Button */}
                             <div className="absolute top-6 left-6 z-[160]">
                                 <button 
                                     onClick={closeModal}
-                                    className="flex items-center gap-2 px-5 py-3 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded-full font-bold text-lg shadow-sm transition-colors"
+                                    className="flex items-center gap-2 px-5 py-3 bg-white/80 hover:bg-white text-purple-700 rounded-full font-bold text-lg shadow-sm transition-all border border-purple-100"
                                 >
                                     <span>🔙</span>
                                     <span>返回</span>
                                 </button>
                             </div>
 
-                            {/* Main Content Container - Centered Vertically & Horizontally, Pr-20 for Mascot */}
-                            <div className="min-h-screen w-full flex flex-col items-center justify-center pt-24 pb-12 pr-20 relative">
+                            {/* Main Content Scrollable Area */}
+                            <div className="flex-1 w-full overflow-y-auto z-10 flex flex-col items-center justify-center py-20 relative">
                                 
-                                {/* Background Decoration */}
-                                <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-purple-50 to-white -z-10"></div>
-
-                                {/* Icon */}
-                                <div className="bg-white p-6 rounded-[30px] shadow-lg mb-6 border-4 border-purple-50 animate-float">
-                                    <span className="text-8xl">{selectedItem.emoji}</span>
-                                </div>
-
-                                {/* Meaning Badge */}
-                                <div className="mb-6">
-                                    <span className="text-2xl font-chinese font-bold text-qy-text-purple bg-purple-100 px-6 py-2 rounded-full border border-purple-200 shadow-sm">
-                                        {selectedItem.meaning}
-                                    </span>
-                                </div>
-                                
-                                {/* Large Letters */}
-                                <div className="mb-8">
-                                    <span className="text-[9rem] leading-none font-bold text-qy-text-purple font-rounded tracking-tight drop-shadow-sm">
-                                        {selectedItem.id}{selectedItem.id.toLowerCase()}
-                                    </span>
-                                </div>
-
-                                {/* Listen Button */}
-                                <button 
-                                    onClick={playWordAudio}
-                                    className="bg-qy-text-purple text-white px-10 py-4 rounded-full font-bold shadow-xl active:scale-95 hover:bg-violet-600 transition-all flex items-center gap-3 text-xl mb-10"
-                                >
-                                    🔊 Listen
-                                </button>
-
-                                {/* Divider */}
-                                <div className="w-64 h-1 bg-purple-100 rounded-full mb-10"></div>
-
-                                {/* Spelling Game Section */}
-                                <div className="flex flex-col items-center w-full px-4">
-                                    <h3 className="text-qy-text-purple font-bold mb-6 text-xl tracking-wide uppercase opacity-80">🧩 Spelling Fun</h3>
+                                {/* Center Card Container */}
+                                <div className="w-full max-w-md flex flex-col items-center gap-6 p-4">
                                     
-                                    <div className="flex items-center gap-3 mb-8 text-5xl font-bold text-gray-700">
-                                        <div className={`w-20 h-24 rounded-2xl flex items-center justify-center border-b-[6px] transition-colors duration-300
-                                            ${gameStatus === 'success' ? 'bg-green-100 border-green-300 text-green-600' : 'bg-gray-100 border-gray-300 text-transparent'}`}>
-                                            {selectedItem.id}
+                                    {/* Letter Display Area - Beautified Glass Card */}
+                                    <div className="relative group">
+                                        {/* Glow effect behind */}
+                                        <div className="absolute inset-0 bg-white rounded-full blur-xl opacity-60 scale-110"></div>
+                                        
+                                        <div className="relative bg-white/80 backdrop-blur-sm p-12 rounded-[3rem] shadow-2xl border-4 border-white flex flex-col items-center justify-center w-72 h-72 sm:w-80 sm:h-80">
+                                            {/* Emoji Badge */}
+                                            <div className="absolute -top-6 -right-6 bg-white p-4 rounded-full shadow-lg border-4 border-purple-50 animate-bounce text-5xl">
+                                                {selectedItem.emoji}
+                                            </div>
+                                            
+                                            <span className="text-[8rem] sm:text-[9rem] leading-none font-black text-transparent bg-clip-text bg-gradient-to-br from-qy-text-purple to-purple-400 font-rounded drop-shadow-sm select-none">
+                                                {selectedItem.id}
+                                                <span className="text-[5rem] sm:text-[6rem] text-purple-300 ml-1">{selectedItem.id.toLowerCase()}</span>
+                                            </span>
                                         </div>
-                                        <span className="tracking-widest opacity-40">{selectedItem.word.substring(1).toUpperCase()}</span>
                                     </div>
 
-                                    <div className="flex gap-4 flex-wrap justify-center">
-                                        {selectedItem.options.sort(() => Math.random() - 0.5).map((opt, i) => (
-                                            <button
-                                                key={i}
-                                                onClick={() => checkAnswer(opt)}
-                                                className={`w-20 h-20 rounded-2xl text-3xl font-bold shadow-lg border-b-[6px] transition-all active:scale-90 flex items-center justify-center
-                                                ${gameStatus === 'success' && opt === selectedItem.id 
-                                                    ? 'bg-green-400 text-white border-green-600 scale-110' 
-                                                    : 'bg-white text-qy-text-purple border-purple-100 hover:bg-purple-50'}`}
-                                            >
-                                                {opt}
-                                            </button>
-                                        ))}
+                                    {/* Meaning Badge & Word */}
+                                    <div className="flex flex-col items-center gap-2 mt-4 animate-pop" style={{animationDelay: '0.1s'}}>
+                                        <h2 className="text-4xl font-bold text-gray-700 tracking-wide">{selectedItem.word}</h2>
+                                        <span className="text-xl font-chinese font-bold text-white bg-qy-text-purple px-8 py-2 rounded-full shadow-md">
+                                            {selectedItem.meaning}
+                                        </span>
                                     </div>
-                                    {gameStatus === 'success' && <p className="mt-8 text-green-500 font-bold animate-bounce text-2xl">Good job! 🌟</p>}
+
+                                    {/* Big Listen Button */}
+                                    <button 
+                                        onClick={playLetterAudio}
+                                        className="mt-4 bg-white hover:bg-purple-50 text-qy-text-purple border-2 border-purple-100 px-12 py-4 rounded-full font-bold shadow-lg active:scale-95 transition-all flex items-center gap-3 text-xl group"
+                                    >
+                                        <span className="group-hover:scale-110 transition-transform text-2xl">🔊</span> 
+                                        <span>发音</span>
+                                    </button>
+
+                                    {/* Divider with text */}
+                                    <div className="relative flex py-5 items-center w-full mt-6">
+                                        <div className="flex-grow border-t-2 border-purple-200/50"></div>
+                                        <span className="flex-shrink mx-4 text-purple-300 font-bold tracking-widest text-sm uppercase">Practice</span>
+                                        <div className="flex-grow border-t-2 border-purple-200/50"></div>
+                                    </div>
+
+                                    {/* Spelling Game Section - Glass Card Style */}
+                                    <div className="w-full bg-white/60 backdrop-blur-md rounded-3xl p-6 sm:p-8 shadow-xl border border-white/50 flex flex-col items-center">
+                                        <h3 className="text-qy-text-purple font-bold mb-6 text-xl tracking-wide uppercase opacity-80">🧩 Spelling Fun</h3>
+                                        
+                                        <div className="flex items-center gap-3 mb-8 text-5xl font-bold text-gray-700">
+                                            <div className={`w-20 h-24 rounded-2xl flex items-center justify-center border-b-[6px] transition-colors duration-300
+                                                ${gameStatus === 'success' ? 'bg-green-100 border-green-300 text-green-600' : 'bg-white border-purple-200 text-transparent'}`}>
+                                                {selectedItem.id}
+                                            </div>
+                                            <span className="tracking-widest opacity-40">{selectedItem.word.substring(1).toUpperCase()}</span>
+                                        </div>
+
+                                        <div className="flex gap-4 flex-wrap justify-center">
+                                            {selectedItem.options.sort(() => Math.random() - 0.5).map((opt, i) => (
+                                                <button
+                                                    key={i}
+                                                    onClick={() => checkAnswer(opt)}
+                                                    className={`w-20 h-20 rounded-2xl text-3xl font-bold shadow-lg border-b-[6px] transition-all active:scale-90 flex items-center justify-center
+                                                    ${gameStatus === 'success' && opt === selectedItem.id 
+                                                        ? 'bg-green-400 text-white border-green-600 scale-110' 
+                                                        : 'bg-white text-qy-text-purple border-purple-100 hover:bg-purple-50'}`}
+                                                >
+                                                    {opt}
+                                                </button>
+                                            ))}
+                                        </div>
+                                        {gameStatus === 'success' && <p className="mt-8 text-green-500 font-bold animate-bounce text-2xl">Good job! 🌟</p>}
+                                    </div>
+                                    
+                                    {/* Spacing for mascot overlap prevention */}
+                                    <div className="h-12 w-full"></div>
+
                                 </div>
                             </div>
                         </div>
@@ -737,8 +776,8 @@
             return (
                 <div className="min-h-screen flex flex-col items-center relative overflow-hidden">
                     
-                    {/* Top Tab Bar - Simplified */}
-                    <div className={`w-full py-3 px-4 flex items-center justify-between sticky top-0 z-40 shadow-sm transition-colors duration-300
+                    {/* Top Tab Bar - Simplified with Safe Area Padding */}
+                    <div className={`w-full pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] px-4 flex items-center justify-between sticky top-0 z-40 shadow-sm transition-colors duration-300
                         ${currentMode === 'hanzi' ? 'bg-qy-pink' : 'bg-qy-purple'}`}>
                         
                         {/* Title Section */}
