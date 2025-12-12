@@ -11,11 +11,11 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#FFB7C5">
 
     <!-- Icons -->
-    <link rel="icon" type="image/png" href="icon.png" />
-    <link rel="apple-touch-icon" href="icon.png" />
-    <link rel="icon" sizes="192x192" href="icon.png" />
+    <link rel="icon" type="image/svg+xml" href="icon.svg" />
+    <link rel="apple-touch-icon" href="icon.svg" />
     
     <!-- REQUIRED SCRIPT ORDER -->
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
@@ -32,33 +32,31 @@
     <script src="https://cdn.jsdelivr.net/npm/cnchar-order/cnchar.order.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/cnchar-trad/cnchar.trad.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/cnchar-radical/cnchar.radical.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/cnchar-words/cnchar.words.min.js"></script>
 
-    <!-- Configure Tailwind for Qiaoyi's Dual Theme -->
+    <!-- Configure Tailwind -->
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        // Hanzi Mode (Pink)
                         'qy-pink': '#FFB7C5',      
                         'qy-dark-pink': '#FF8FAB', 
                         'qy-text-pink': '#D63384',
-                        
-                        // English Mode (Lavender)
                         'qy-purple': '#E0BBE4',
                         'qy-dark-purple': '#957DAD',
-                        'qy-text-purple': '#6D28D9', // Violet 700
-                        'qy-bg-purple': '#F3E8FF',   // Purple 50
+                        'qy-text-purple': '#6D28D9',
+                        'qy-bg-purple': '#F3E8FF',
                     },
                     fontFamily: {
                         'rounded': ['"Varela Round"', 'sans-serif'],
                         'chinese': ['"Ma Shan Zheng"', '"KaiTi"', 'serif'],
-                        'handwriting': ['"Varela Round"', 'sans-serif'], // Fallback for handwriting
                     },
                     animation: {
                         'float': 'float 3s ease-in-out infinite',
                         'pop': 'bounce-in 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55)',
-                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'dash': 'dash 1.5s ease-in-out forwards',
+                        'shake': 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both',
                     },
                     keyframes: {
                         float: {
@@ -70,6 +68,12 @@
                             '50%': { transform: 'scale(1.05)' },
                             '70%': { transform: 'scale(0.9)' },
                             '100%': { transform: 'scale(1)', opacity: '1' },
+                        },
+                        shake: {
+                            '10%, 90%': { transform: 'translate3d(-1px, 0, 0)' },
+                            '20%, 80%': { transform: 'translate3d(2px, 0, 0)' },
+                            '30%, 50%, 70%': { transform: 'translate3d(-4px, 0, 0)' },
+                            '40%, 60%': { transform: 'translate3d(4px, 0, 0)' }
                         }
                     }
                 }
@@ -77,126 +81,69 @@
         }
     </script>
     
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Varela+Round&display=swap" rel="stylesheet">
     
     <style>
         body {
             font-family: 'Varela Round', "Microsoft YaHei", sans-serif;
             transition: background-color 0.5s ease;
-            /* Prevent bouncing on iOS */
             overscroll-behavior-y: none;
         }
-        
-        /* Custom Scrollbar */
         .stroke-scroll::-webkit-scrollbar { height: 8px; }
         .stroke-scroll::-webkit-scrollbar-track { background: transparent; }
         .stroke-scroll::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
-
-        /* --- CONTEXT-AWARE DOG ANIMATIONS --- */
         
-        /* Jump: Excitement (Up/Down) */
-        @keyframes dog-jump {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-25px); }
-        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        @keyframes dog-jump { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-25px); } }
         .animate-dog-jump { animation: dog-jump 0.5s ease-in-out; }
-
-        /* Wiggle: Playful (Rotate Tail/Body) */
-        @keyframes dog-wiggle {
-            0%, 100% { transform: rotate(-10deg); }
-            50% { transform: rotate(10deg); }
-        }
+        @keyframes dog-wiggle { 0%, 100% { transform: rotate(-10deg); } 50% { transform: rotate(10deg); } }
         .animate-dog-wiggle { animation: dog-wiggle 0.5s ease-in-out infinite; }
-
-        /* Spin: Showing Off (360 Rotate) */
-        @keyframes dog-spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        @keyframes dog-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .animate-dog-spin { animation: dog-spin 0.6s linear; }
-
-        /* Pulse: Love/Comfort (Scale Breath) */
-        @keyframes dog-pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.2); }
-        }
+        @keyframes dog-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
         .animate-dog-pulse { animation: dog-pulse 1s ease-in-out infinite; }
-
-        /* Generic Entrance */
-        @keyframes tada {
-            0% { transform: scale(1); }
-            10%, 20% { transform: scale(0.9) rotate(-3deg); }
-            30%, 50%, 70%, 90% { transform: scale(1.1) rotate(3deg); }
-            40%, 60%, 80% { transform: scale(1.1) rotate(-3deg); }
-            100% { transform: scale(1) rotate(0); }
-        }
+        @keyframes tada { 0% { transform: scale(1); } 10%, 20% { transform: scale(0.9) rotate(-3deg); } 30%, 50%, 70%, 90% { transform: scale(1.1) rotate(3deg); } 40%, 60%, 80% { transform: scale(1.1) rotate(-3deg); } 100% { transform: scale(1) rotate(0); } }
         .animate-tada { animation: tada 1s ease-in-out; }
 
-        /* Modal Blur Background */
-        .modal-backdrop {
-            background-color: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(8px);
+        /* Custom Background Patterns (Subtle "Dark Flowers") */
+        .bg-pattern-hanzi {
+            background-color: #fff1f2; /* pink-50 base */
+            background-image: url("data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 24c6.627 0 12-5.373 12-12S18.627 0 12 0 0 5.373 0 12s5.373 12 12 12zm0-2c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z' fill='%23fecdd3' fill-opacity='0.25' fill-rule='evenodd'/%3E%3C/svg%3E");
+        }
+
+        .bg-pattern-english {
+            background-color: #faf5ff; /* purple-50 base */
+            background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23e9d5ff' fill-opacity='0.4' fill-rule='evenodd'%3E%3Cpath d='M0 40L40 0H20l-20 20M40 40V20L20 40'/%3E%3C/g%3E%3C/svg%3E");
         }
     </style>
 </head>
-<body class="bg-pink-50"> <!-- Default bg -->
+<body class="bg-pattern-hanzi">
     <div id="root"></div>
 
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
-        // --- COMMON CHARACTERS FOR LOOKUP (3500 Common Characters) ---
-        // Covers full elementary curriculum + middle school basics.
         const COMMON_CHARS = "的一是在不了有和人这中大为上个国我以要他时来用们生到作地于出就分对成会可主发年动同工也能下过子说产种面而方后多定行学法所民得经十三之进着等部度家电力里如水化高自二理起小物现实量都两体制机当使点从业本去把性好应开它合还因由其些然前外天政四日那社义事平形相全表间样想向道命此位理望果料建月公教系并数常文通期么手接员口立情运安最军今提气重山结放解各少资期打台候快眼比书笑语声西南美界北边书读写字清明亮星火妈爸爷奶哥姐弟妹校师课笔纸球草树花鸟鱼虫牛羊马狗早晚饭衣车门窗床灯钟觉洗澡刷脸牙手足身头口耳目鼻手足大中小多少日月水火土木金石田土天风雨雪电云冰沙海河湖江洋爸妈哥弟姐妹爷奶伯叔姨姑家校师生同学友爱看听说读写画唱跳跑坐立走飞吃喝玩乐春夏秋冬红黄蓝绿白黑紫橙灰棕一二三四五六七八九十百千万上中下左右前后内外面里方圆长短高矮粗细快慢冷热干湿轻重明暗开关出入来去坐卧立行阿啊埃挨哎唉哀皑癌蔼矮艾碍爱隘鞍氨安俺按暗岸胺案肮昂盎凹敖熬翱袄傲奥懊澳爸扒芭疤巴拔跋靶把耙坝霸罢爸白柏百摆佰败拜稗斑班搬扳般颁板版扮拌伴瓣半办绊邦帮梆榜膀绑棒磅蚌镑傍谤苞胞包褒剥薄雹保堡饱宝抱报暴豹鲍爆杯碑悲卑北辈背贝钡倍狈备惫焙被奔苯本笨崩绷甭泵蹦迸逼鼻比鄙笔彼碧蓖蔽毕毙币庇痹闭敝弊必辟壁臂避陛鞭边编贬扁便变卞辨辩辫遍标彪膘表鳖憋别瘪彬斌濒滨宾屏冰柄丙秉饼炳病并玻菠播拨钵波博勃搏铂箔伯帛舶脖膊渤泊驳捕卜哺补埠不布步簿部怖擦猜裁材才财睬踩采彩菜蔡餐参蚕残惭惨惨苍舱仓沧藏操糙槽曹草厕策侧册测层蹭插叉茬茶查碴搽察岔差诧拆柴豺搀掺蝉馋谗缠铲产阐颤昌猖场尝常长偿肠厂敞畅唱倡超抄钞朝嘲潮巢吵炒车扯撤掣彻澈衬称撑澄呈承诚城乘惩程澄秤吃痴持匙池迟弛驰耻齿侈尺赤翅斥炽充冲虫崇宠抽酬畴踌稠愁筹仇绸瞅丑臭初出橱厨躇锄雏处揣川穿椽传船喘串疮窗幢床闯创吹炊捶锤春椿醇唇淳纯蠢戳绰疵茨磁雌辞慈瓷词此刺赐次聪葱囱匆从丛凑粗醋簇促蹿篡窜摧崔催脆瘁粹淬翠村存寸磋撮搓措挫错搭达答瘩打大呆歹傣戴带殆代贷袋待逮怠耽担丹单郸掸胆旦氮但惮淡诞弹蛋当挡党荡档刀捣蹈倒岛祷导到稻悼道盗德得的蹬灯登等瞪凳邓堤低滴迪敌笛狄涤翟嫡抵底地蒂第帝弟递缔颠掂滇碘点典靛垫电佃甸店惦奠淀殿碉叼雕凋刁掉吊钓调跌爹碟蝶迭谍叠丁盯叮钉顶鼎锭定订丢东冬董懂动栋侗斗抖陡豆督毒读独顿墩盾敦蹲蹲端短段断缎堆兑队对墩吨蹲敦顿囤钝盾遁多哆夺度渡镀端短段断缎堆兑队对多哆夺度渡镀端短段断缎堆兑队对多哆夺度渡镀峨俄娥鄂鹅蛾额厄扼恶饿恩而儿耳尔饵贰发罚筏伐乏阀法珐藩帆番翻樊矾钒繁凡烦反返范贩犯饭泛坊芳方肪房防妨仿访纺放菲非啡飞肥匪诽吠肺废沸费芬酚吩氛分纷坟焚汾粉奋份忿愤粪丰封枫蜂峰锋风疯烽逢冯缝讽奉凤佛否夫敷肤孵扶拂辐幅氟符伏俘服浮涪福袱弗甫抚辅俯釜斧脯腑府腐赴副覆赋复傅付阜父腹负富讣附妇缚咐噶嘎该改概钙盖溉干甘杆柑竿肝赶感秆敢赣冈刚钢缸肛纲岗港杠篙皋高膏羔糕搞镐稿告哥歌搁戈鸽胳疙割革葛格蛤阁隔铬个各给根跟耕更庚羹埂耿梗工攻功恭龚供躬公宫弓巩汞拱贡共钩勾沟苟狗垢构购够辜菇咕箍估沽孤姑鼓古蛊骨谷股故顾固雇刮瓜剐寡挂褂乖拐怪棺关官冠观管馆罐惯灌贯光广逛瑰规圭硅归龟闺轨鬼诡癸桂柜跪贵刽辊滚棍锅郭国果裹过哈骸孩海氦亥害骇酣憨邯韩含涵寒函喊罕翰撼捍旱憾悍焊焊汗汉夯杭航壕嚎豪毫郝好耗号浩呵喝荷菏核禾和何合盒貉阂河涸赫褐鹤贺嘿黑痕很狠恨哼亨横衡恒轰哄烘虹鸿洪宏弘红喉侯猴吼后厚候乎呼忽弧狐胡壶湖葫瑚糊蝴虎唬护互沪户花哗华猾滑画划化话槐徊怀淮坏欢环桓还缓换患唤痪豢焕涣宦幻荒慌黄磺蝗簧皇凰惶煌晃幌恍谎灰挥辉徽恢蛔回毁悔慧卉惠晦贿秽会烩汇讳诲绘荤昏婚魂浑混豁活伙火获或惑霍货祸击圾基机畸稽积箕肌饥迹激讥鸡姬绩缉吉极棘辑籍集及急疾汲即嫉级挤几脊己蓟技冀季伎祭剂悸济寄寂计记既忌际继纪嘉枷夹佳家加荚颊贾甲钾假稼价架驾嫁歼监坚尖践间煎兼肩艰奸缄茧检柬碱拣捡简俭剪减荐槛鉴践贱见键箭件健舰剑饯渐溅涧建僵姜将浆江疆蒋桨奖讲匠酱降蕉椒礁焦胶交郊浇骄娇嚼搅铰矫侥脚狡角饺缴绞剿教酵轿较叫窖揭接皆秸街阶截劫节桔杰捷睫竭洁结解姐戒藉芥界借介疥诫届巾筋斤金今津襟紧锦仅谨进靳晋禁近烬浸尽劲荆兢茎睛晶鲸京惊精粳经井警景颈静境敬镜径痉靖竟竞净炯窘揪究纠玖韭久灸九酒厩救旧臼舅咎就疚鞠拘狙疽菊局咀矩举沮聚拒据巨具距踞锯俱句惧炬剧捐鹃娟倦眷卷绢撅攫抉掘倔爵觉决诀绝均菌钧军君峻俊竣浚郡骏喀咖卡咯开揩楷楷凯慨刊堪勘坎砍看康慷糠扛抗亢炕考拷烤靠坷苛柯棵磕颗科壳咳可渴克刻客课肯啃垦恳坑吭空恐孔控抠口扣寇枯哭窟苦酷库裤夸垮挎跨胯块快侩筷宽款匡筐狂框矿眶旷况亏盔岿窥葵奎魁傀馈愧溃坤昆捆困括扩廓阔垃圾拉喇蜡腊辣啦莱来赖蓝婪栏拦篮阑兰澜谰揽览懒缆烂滥琅榔狼廊郎朗浪捞劳牢老佬姥酪烙涝勒乐雷镭蕾磊累儡垒擂肋类泪棱楞冷厘梨犁黎篱狸离漓理李里鲤礼莉荔吏栗丽厉励砾历利傈例俐痢立粒沥隶力璃哩俩联莲连镰廉怜涟帘敛脸链恋炼练粮凉梁粱良两辆量晾亮谅撩聊僚辽潦了撂镣廖料列裂烈劣猎琳林磷霖临邻鳞淋凛赁吝拎玲菱零龄铃伶灵岭领另令溜琉榴硫馏留刘瘤流柳六龙聋咙笼窿隆垄拢陇楼娄搂篓漏陋芦卢颅庐炉掳卤虏鲁麓碌露路赂鹿禄录陆戮驴吕铝侣旅履屡缕虑氯律率滤绿峦挛孪滦卵乱掠略抡轮伦仑沦纶论萝螺罗逻锣箩骡裸落洛骆络妈麻玛码蚂马骂嘛吗埋买麦卖迈脉瞒馒蛮满蔓曼慢漫芒茫盲氓忙莽猫茅锚毛矛铆卯茂冒帽貌贸么玫枚梅酶霉煤没眉媒镁每美昧寐妹媚门闷们萌蒙檬盟锰猛梦孟眯醚靡糜迷谜弥米秘觅泌蜜密幂棉眠绵冕免勉娩缅面苗描瞄藐秒渺庙妙蔑灭民抿皿敏悯闽明螟鸣铭名命谬摸摹蘑模膜磨摩魔抹末莫墨默沫漠寞陌谋牟某拇牡亩姆母墓暮幕募慕木目睦牧穆拿哪呐钠那娜纳氖乃奶耐奈南男难囊挠脑恼闹淖呢馁内嫩能妮霓倪泥尼拟你匿腻逆溺蔫拈年碾撵捻念娘酿鸟尿捏聂孽啮镊镍涅您柠狞凝宁拧泞牛扭钮纽脓浓农弄奴努怒女暖虐疟挪懦糯诺哦欧鸥殴藕呕偶沤啪趴爬帕怕琶拍排牌徘湃派攀潘盘磐盼畔判叛乓庞旁耪胖抛咆刨炮袍跑泡呸胚培赔陪配佩沛喷盆砰抨烹澎彭蓬棚硼篷膨朋鹏捧碰坯砒霹批披劈琵毗啤脾疲皮匹痞僻屁譬篇偏片骗飘漂瓢票撇瞥拼频贫品聘乒坪苹萍平凭瓶评屏坡泼颇婆破魄迫粕剖扑铺仆蒲葡菩蒲埔朴圃普浦谱曝瀑期欺栖戚妻七凄漆柒沏其棋奇歧畦崎脐齐旗祈祁骑起岂乞企启契砌器气迄弃汽泣讫掐洽牵扦钎铅千迁签谦乾黔钱钳前潜遣浅谴堑嵌欠歉枪呛腔羌墙蔷强抢橇锹敲悄桥瞧乔侨巧鞘撬翘峭俏窍切茄且怯窃钦侵亲秦琴勤芹擒禽寝沁青轻氢倾卿清擎晴氰情顷请庆琼穷秋丘邱球求囚酋泅趋区蛆曲躯屈驱渠取娶龋趣去圈颧权醛泉全痊拳犬券劝缺炔瘸却鹊榷确雀裙群然燃冉染瓤壤攘嚷让饶扰绕惹热壬仁人忍韧任认刃妊纫扔仍日戎茸蓉荣融熔溶容绒冗揉柔肉茹蠕儒孺如辱乳汝入褥软阮蕊瑞锐闰润若弱撒洒萨腮鳃塞赛三叁伞散桑嗓丧搔骚扫嫂瑟色涩森僧莎砂杀刹沙纱傻啥煞筛晒珊苫杉山删煽衫闪陕擅赡膳善汕扇缮墒伤商赏晌上尚裳梢捎稍烧芍勺韶少哨邵绍奢赊蛇舌舍赦摄射慑涉社设砷申呻伸身深娠绅神沈审婶肾甚渗慎升生声牲胜绳省圣盛剩尸失师诗施狮湿十石时识实拾蚀食史矢使屎驶始式示士世柿事拭誓逝势是嗜噬适仕侍释饰氏市恃室视试收手首守寿授售受瘦兽蔬枢梳殊抒输叔舒淑疏书赎孰熟薯暑曙署蜀黍鼠属术述树束戍竖墅庶数漱恕刷耍摔衰甩帅栓拴霜双爽谁水睡税吮瞬顺舜说硕朔烁斯撕嘶思私司丝死肆寺嗣四伺似饲巳松耸怂颂送宋讼诵搜艘擞嗽苏酥俗素速粟塑溯宿诉肃酸蒜算虽隋随绥髓碎岁穗遂隧祟孙损笋蓑梭唆缩琐索锁所塌他它她塔獭挞蹋踏胎苔抬台泰酞太态汰坍摊贪瘫滩坛檀痰潭谭谈坦毯袒碳探叹炭汤塘搪堂棠唐糖膛塘倘躺淌趟烫掏涛滔绦萄桃逃淘陶讨套特藤腾疼誊梯剔踢锑提题蹄啼体替嚏惕涕剃屉天添填田甜恬舔腆挑条迢眺跳贴铁帖厅听烃汀廷停亭庭挺艇通桐酮瞳同铜彤童桶捅筒统痛偷投头透凸秃突图徒途涂屠土吐兔湍团推颓腿蜕褪退吞屯臀拖托脱鸵陀驮驼椭妥拓唾挖哇蛙洼娃瓦袜歪外弯湾玩顽丸烷完碗挽晚皖惋宛婉万腕汪王亡枉网往旺望忘妄威巍微危韦违桅围唯惟为潍维苇萎委伟伪尾纬未蔚味畏胃喂魏位渭谓尉慰卫瘟温蚊文闻纹吻稳紊问嗡翁瓮挝蜗涡窝我斡卧握沃巫呜钨乌污诬屋无芜梧吾吴毋武五捂午舞伍侮坞戊雾晤物勿务悟误昔熙析西硒矽晰嘻吸锡牺稀息希悉膝夕惜熄烯溪汐犀檄袭席习媳喜铣洗系隙戏细瞎虾匣霞辖暇峡侠狭下厦夏吓掀锨先仙鲜纤咸贤衔舷闲涎弦嫌显险现献县腺馅羡宪陷限线相厢镶香箱襄湘乡翔祥详想响享项巷橡像向象萧硝霄削哮嚣销消宵淆晓小孝校肖啸笑效楔些歇蝎鞋协挟携邪斜胁谐写械卸蟹懈泄泻谢屑薪芯锌欣辛新忻心信衅星腥猩惺兴刑型形邢行醒幸杏性姓兄凶胸匈汹雄熊休修羞朽嗅锈秀袖绣墟戌需虚嘘须徐许蓄酗叙旭序畜恤絮婿绪续轩喧宣悬旋玄选癣眩绚靴薛学穴雪血勋熏循旬询寻驯巡殉汛训讯逊迅压押鸦鸭呀丫芽牙蚜崖衙涯雅哑亚讶焉咽阉烟淹盐严研岩延言颜阎炎沿奄掩眼衍演艳堰燕厌砚雁唁彦焰宴谚验殃央鸯秧杨扬佯疡羊洋阳氧仰痒养样漾邀腰妖瑶摇尧遥窑谣姚咬舀药要耀椰噎耶爷野冶也页掖业叶曳腋夜液一壹医揖铱依伊衣颐夷遗移仪胰疑沂宜姨彝椅蚁倚已乙矣以艺抑易邑屹亿役臆逸肄疫亦裔意毅忆义益溢诣议谊译异翼翌绎茵荫因殷音阴姻吟银淫寅饮尹引隐印英樱婴鹰应缨莹萤营荧蝇迎赢盈影颖硬映哟拥佣臃痈庸雍踊蛹咏泳涌永恿勇用幽优悠忧尤由邮铀犹油游酉有友右佑釉诱又幼迂淤于盂榆虞愚舆余俞逾鱼愉渝渔隅予娱雨与屿禹宇语羽玉域芋郁吁遇喻峪御愈欲狱育誉浴寓裕预豫鸳渊冤元垣袁原援辕园员圆猿源缘远苑愿怨院曰约越跃钥岳粤月悦阅读耘云郧匀陨允运蕴酝晕韵孕匝砸杂栽哉灾宰载再在咱攒暂赞赃脏葬遭糟凿藻枣早澡蚤躁噪造皂灶燥责择则泽贼怎增憎曾赠扎喳渣札轧铡闸眨栅榨咋乍炸诈摘斋宅窄债寨瞻毡施粘沾詹毡展战站湛绽樟章彰漳张掌涨杖丈帐账仗胀瘴障招昭找沼赵照罩兆肇召遮折哲蛰辙者锗蔗这浙珍斟真甄砧臻贞针侦枕疹诊震振镇阵蒸挣睁征狰争怔整拯正政帧症郑证芝枝支吱蜘知肢脂汁之织职直植殖执值侄址指止趾只旨纸志挚掷至致置帜峙制智秩稚质炙痔滞治窒中盅忠钟衷终种肿重仲众舟周州洲诌粥轴肘帚咒皱宙昼骤珠株蛛朱猪诸诛逐竹烛煮拄瞩嘱主著柱助蛀贮铸筑住注祝驻抓爪拽专砖转撰赚篆桩庄装妆撞壮状椎锥追赘坠缀谆准捉拙卓桌琢茁酌啄着灼浊兹咨资姿姿滋淄孜紫仔籽滓子自渍字鬃棕踪宗综总纵邹走奏揍租足卒族祖诅阻组钻纂嘴醉最罪尊遵昨左佐柞做作坐座坐座";
 
-        // --- PINYIN DATA ---
-        // Added '无' (None) for zero-initial syllables (like 'ai', 'an', 'e')
         const PINYIN_INITIALS = ['无','b','p','m','f','d','t','n','l','g','k','h','j','q','x','zh','ch','sh','r','z','c','s','y','w'];
-        
-        // Medials (Jiemu) - The bridge in Sanpin (Three-spell)
         const PINYIN_MEDIALS = ['','i','u','v'];
-        
-        // Standard Finals (Yunmu) - Restored to standard list without compounds
-        const PINYIN_FINALS = [
-            'a','o','e','ai','ei','ao','ou','an','en','ang','eng','ong',
-            'i','ia','ie','iao','iu','ian','in','iang','ing','iong',
-            'u','ua','uo','ui','uai','uan','un','uang',
-            'v','ve','vn' // 'v' is ü in input
-        ];
+        const PINYIN_FINALS = ['a','o','e','ai','ei','ao','ou','an','en','ang','eng','ong','i','ia','ie','iao','iu','ian','in','iang','ing','iong','u','ua','uo','ui','uai','uan','un','uang','v','ve','vn'];
 
-        // --- SAFE AUDIO ENGINE (CRASH PROOF) ---
-        // cancelPrevious: If true, stops current audio. If false, adds to queue.
-        const playAudio = (text, isPuppy = false, isEnglish = false, cancelPrevious = true) => {
+        const playAudio = (text, isEnglish = false) => {
             try {
-                // Safety cancel only if requested
-                if (cancelPrevious) {
-                    window.speechSynthesis.cancel();
-                }
-
+                window.speechSynthesis.cancel();
                 const u = new SpeechSynthesisUtterance(text);
-                
-                // Simple Lang Logic
                 u.lang = isEnglish ? 'en-US' : 'zh-CN';
-
-                if (isPuppy) {
-                    // PUPPY SETTINGS: High Pitch = Cute
-                    u.pitch = 1.5; 
-                    u.rate = 1.1; 
-                } else {
-                    // TEACHER SETTINGS: Normal Pitch, Slow
-                    u.pitch = 1.0; 
-                    u.rate = 0.85; 
-                }
-
+                u.pitch = 1.0; 
+                u.rate = 0.9;
                 window.speechSynthesis.speak(u);
             } catch (err) {
-                console.warn("Audio error (ignored to prevent crash):", err);
+                console.warn("Audio error:", err);
             }
         };
 
-        // --- MASCOT DIALOGUE DATABASE (Refactored with Actions) ---
-        
         const CN_DIALOGUES = [
             { text: "乔依，你是世界上最棒的一年级小学生！", action: "jump" },
             { text: "汪汪！乔依，我也想要一件粉色的新衣服！", action: "wiggle" },
@@ -233,7 +180,6 @@
             { en: "See you tomorrow, Winnie.", cn: "Winnie，明天见。", action: "pulse" }
         ];
 
-        // --- Data: Phonics (A-Z) with Translations ---
         const PHONICS_DATA = [
             { id: 'A', word: 'Apple', meaning: '苹果', emoji: '🍎', options: ['A', 'O', 'U'] },
             { id: 'B', word: 'Bear', meaning: '小熊', emoji: '🐻', options: ['B', 'P', 'D'] },
@@ -263,11 +209,8 @@
             { id: 'Z', word: 'Zebra', meaning: '斑马', emoji: '🦓', options: ['Z', 'S', 'X'] },
         ];
 
-        // --- Shared Components ---
-
-        // Custom Chinese Knot Icon (SVG)
         const ChineseKnotIcon = () => (
-             <svg width="34" height="34" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-sm">
+             <svg width="28" height="28" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-sm">
                 <defs>
                     <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
                         <feGaussianBlur stdDeviation="2" result="blur" />
@@ -286,7 +229,6 @@
             </svg>
         );
 
-        // --- MASCOT COMPONENT (Redesigned for Middle-Right Position) ---
         const Mascot = ({ mode, status }) => {
             const isEnglish = mode === 'english';
             const [currentAnim, setCurrentAnim] = useState('');
@@ -301,15 +243,21 @@
                 }
             }, [status]);
 
+            useEffect(() => {
+                if (dialogue) {
+                    const timer = setTimeout(() => {
+                        setDialogue(null);
+                    }, 8000); // Auto close after 8 seconds
+                    return () => clearTimeout(timer);
+                }
+            }, [dialogue]);
+
             const handleInteraction = (e) => {
                 e.stopPropagation();
-                
                 const list = isEnglish ? EN_DIALOGUES : CN_DIALOGUES;
                 const item = list[Math.floor(Math.random() * list.length)];
-                
                 setDialogue(isEnglish ? item.en : item.text);
 
-                // Map ACTION to CSS CLASS
                 let animClass = 'animate-tada';
                 if (item.action === 'jump') animClass = 'animate-dog-jump';
                 if (item.action === 'wiggle') animClass = 'animate-dog-wiggle';
@@ -317,14 +265,11 @@
                 if (item.action === 'pulse') animClass = 'animate-dog-pulse';
 
                 setCurrentAnim(animClass);
-
-                // Safe Audio Call
                 if (isEnglish) {
-                    playAudio(item.en, true, true);
+                    playAudio(item.en, true);
                 } else {
-                    playAudio(item.text, true, false);
+                    playAudio(item.text, false);
                 }
-
                 setTimeout(() => {
                     setCurrentAnim('');
                 }, 1000); 
@@ -337,33 +282,23 @@
 
             return (
                 <div className="relative flex flex-col items-center group">
-                    {/* Speech Bubble - Pops Left */}
                     {dialogue && (
                         <div 
                             onClick={handleCloseDialogue}
                             className="absolute right-[110%] top-1/2 -translate-y-1/2 w-48 z-[201] animate-pop cursor-pointer"
-                            role="button"
-                            aria-label="Close dialogue"
                         >
                             <div className={`bg-white p-3 rounded-2xl shadow-xl border-2 text-center relative
                                 ${isEnglish ? 'border-qy-purple text-qy-text-purple' : 'border-qy-pink text-qy-text-pink'}`}>
-                                
-                                {/* Close Button */}
                                 <div className="absolute -top-2 -left-2 w-6 h-6 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-400 font-bold shadow-sm hover:text-red-500 z-10">✕</div>
-                                
                                 <p className="text-sm font-bold leading-tight">{dialogue}</p>
                                 <div className={`absolute top-1/2 -translate-y-1/2 -right-[12px] w-0 h-0 border-t-[8px] border-t-transparent border-b-[8px] border-b-transparent border-l-[12px]
                                     ${isEnglish ? 'border-l-qy-purple' : 'border-l-qy-pink'}`}></div>
                             </div>
                         </div>
                     )}
-
-                    {/* Dog Emoji - Scaled for fixed position */}
                     <div 
                         onClick={handleInteraction}
                         className={`text-6xl sm:text-7xl filter drop-shadow-lg cursor-pointer hover:scale-110 active:scale-95 transition-transform relative z-10 ${currentAnim}`}
-                        role="button"
-                        aria-label="Interact with Mascot"
                     >
                         🐶
                     </div>
@@ -371,16 +306,14 @@
             );
         };
 
-        // --- NEW COMPONENT: PINYIN SELECTOR MODAL ---
         const PinyinSelector = ({ onClose, onSelectChar }) => {
-            const [step, setStep] = useState('initial'); // 'initial' | 'final' | 'select'
+            const [step, setStep] = useState('initial');
             const [selectedInitial, setSelectedInitial] = useState('');
-            const [selectedMedial, setSelectedMedial] = useState(''); // New: Medial State
+            const [selectedMedial, setSelectedMedial] = useState('');
             const [selectedFinal, setSelectedFinal] = useState('');
             const [matchedChars, setMatchedChars] = useState([]);
             const [validPinyins, setValidPinyins] = useState(new Set());
 
-            // 1. Compute valid pinyins from character database on mount
             useEffect(() => {
                 if(!COMMON_CHARS) return;
                 const set = new Set();
@@ -402,12 +335,11 @@
             const handleInitialClick = (init) => {
                 setSelectedInitial(init);
                 setStep('final');
-                setSelectedMedial(''); // Reset medial when picking new initial
+                setSelectedMedial('');
             };
 
-            // Toggle Medial
             const handleMedialClick = (medial) => {
-                setSelectedMedial(medial === selectedMedial ? '' : medial); // Allow toggle off
+                setSelectedMedial(medial === selectedMedial ? '' : medial);
             };
 
             const handleFinalClick = (final) => {
@@ -416,10 +348,8 @@
                 setSelectedFinal(final);
                 const init = selectedInitial === '无' ? '' : selectedInitial;
                 
-                // Assemble full pinyin logic for searching
                 const { searchPinyin } = assemblePinyin(init, selectedMedial, final);
 
-                // Filter Common Chars
                 const matches = [];
                 const chars = COMMON_CHARS.split('');
                 chars.forEach(char => {
@@ -434,45 +364,31 @@
                 setStep('select');
             };
 
-            // --- HELPER: Logic for combining Initial + Medial + Final into Standard Pinyin ---
-            // Handles rules like j/q/x + ü -> u
             const assemblePinyin = (init, medial, final) => {
-                // Base components
                 let p_init = init;
                 let p_medial = medial;
                 let p_final = final;
 
-                // RULE 1: j, q, x + ü (v) -> ju, qu, xu
                 if (['j', 'q', 'x'].includes(init) && medial === 'v') {
                     p_medial = 'u';
                 }
-                // RULE 2: y + ü (v) -> yu
                 if (init === 'y' && medial === 'v') {
                     p_medial = 'u';
                 }
-                 // RULE 3: j, q, x + üe (ve) -> jue, que, xue
                  if (['j', 'q', 'x'].includes(init) && final.startsWith('v')) {
-                     // If medial is empty but final starts with v (like ve)
                      p_final = final.replace('v', 'u');
                 }
-
-                // If medial is 'v' but initial allows 'v' (n, l), keep 'v' (nv, lv)
-                // If final has 'v', keep it unless caught by rules above
-
                 const searchPinyin = p_init + p_medial + p_final;
                 return { searchPinyin };
             };
 
-            // Check if a specific combination is valid in DB
             const checkCombination = (init, medial, final) => {
                 const i = init === '无' ? '' : init;
                 const { searchPinyin } = assemblePinyin(i, medial, final);
                 return validPinyins.has(searchPinyin);
             };
 
-            // Check if a Medial is valid for current Initial (checking against ALL finals)
             const isMedialValidForInitial = (medial) => {
-                // Loop through all finals, if AT LEAST ONE combination works, this medial is valid
                 return PINYIN_FINALS.some(final => checkCombination(selectedInitial, medial, final));
             };
 
@@ -483,25 +399,22 @@
 
             return (
                 <div className="fixed inset-0 z-[300] bg-white/95 backdrop-blur-xl flex flex-col items-center animate-pop p-4">
-                    {/* Header */}
                     <div className="w-full flex justify-between items-center mb-6">
                         <button onClick={step === 'initial' ? onClose : handleBack} className="bg-gray-100 p-2 rounded-full text-2xl w-12 h-12 shadow-sm active:scale-90 transition-transform">
                              {step === 'initial' ? '✕' : '🔙'}
                         </button>
                         <h2 className="text-2xl font-black text-qy-text-pink font-chinese tracking-widest">
-                            {step === 'initial' && '选声母 (Initials)'}
-                            {step === 'final' && '选韵母 (Finals)'}
-                            {step === 'select' && '选汉字 (Pick Char)'}
+                            {step === 'initial' && '选声母'}
+                            {step === 'final' && '选韵母'}
+                            {step === 'select' && '选汉字'}
                         </h2>
                         <div className="w-12"></div>
                     </div>
 
-                    {/* Progress Display */}
                     <div className="flex items-center gap-2 mb-8 bg-pink-50 px-6 py-2 rounded-full border border-pink-100">
                         <span className={`text-2xl font-bold ${selectedInitial ? 'text-qy-text-pink' : 'text-gray-300'}`}>
                             {selectedInitial || '?'}
                         </span>
-                        {/* Only show + Medial if selected */}
                         {selectedMedial && (
                             <>
                                 <span className="text-gray-300">+</span>
@@ -516,10 +429,7 @@
                         </span>
                     </div>
 
-                    {/* Content Area */}
                     <div className="flex-1 w-full overflow-y-auto px-2">
-                        
-                        {/* Step 1: Initials */}
                         {step === 'initial' && (
                             <div className="grid grid-cols-4 gap-4 pb-20">
                                 {PINYIN_INITIALS.map(init => (
@@ -536,11 +446,8 @@
                             </div>
                         )}
 
-                        {/* Step 2: Finals (With Medial Toggle) */}
                         {step === 'final' && (
                             <div className="w-full flex flex-col gap-6 pb-20">
-                                
-                                {/* 2.1 Medial Toggles (Only if Initial is not '无') */}
                                 {selectedInitial !== '无' && (
                                     <div className="bg-pink-50 rounded-2xl p-4 border border-pink-100">
                                         <div className="text-xs font-bold text-pink-400 mb-2 uppercase">选择介母 (Medial):</div>
@@ -568,13 +475,11 @@
                                     </div>
                                 )}
 
-                                {/* 2.2 Finals Grid */}
                                 <div>
                                     <div className="text-xs font-bold text-pink-400 mb-2 ml-1 uppercase">选择韵母 (Final):</div>
                                     <div className="grid grid-cols-4 gap-4">
                                         {PINYIN_FINALS.map(final => {
                                             const isValid = checkCombination(selectedInitial, selectedMedial, final);
-                                            // HIDE INVALID OPTIONS COMPLETELY
                                             if (!isValid) return null;
 
                                             return (
@@ -592,7 +497,6 @@
                             </div>
                         )}
 
-                        {/* Step 3: Selection */}
                         {step === 'select' && (
                             <div className="flex flex-col items-center w-full pb-20">
                                 {matchedChars.length === 0 ? (
@@ -621,7 +525,178 @@
             );
         };
 
-        // --- HANZI VIEW COMPONENTS ---
+        const HanziQuiz = ({ onClose, setMascotStatus }) => {
+            const [questions, setQuestions] = useState([]);
+            const [currentIndex, setCurrentIndex] = useState(0);
+            const [score, setScore] = useState(0);
+            const [isFinished, setIsFinished] = useState(false);
+            const [animState, setAnimState] = useState('');
+
+            useEffect(() => {
+                generateQuiz();
+            }, []);
+
+            const generateQuiz = () => {
+                const chars = COMMON_CHARS.split('');
+                const quizSet = [];
+                for(let i=0; i<5; i++) {
+                    const targetChar = chars[Math.floor(Math.random() * chars.length)];
+                    const pinyin = cnchar.spell(targetChar, 'tone');
+                    // Randomly decide type: 'choose-hanzi' (Listen/Pinyin -> Hanzi) or 'choose-pinyin' (See Hanzi -> Pinyin)
+                    const type = Math.random() > 0.5 ? 'choose-hanzi' : 'choose-pinyin';
+
+                    let options = [];
+                    if (type === 'choose-hanzi') {
+                        // Options are other Hanzi chars
+                        options = [targetChar];
+                        while(options.length < 4) {
+                            const r = chars[Math.floor(Math.random() * chars.length)];
+                            if(!options.includes(r)) options.push(r);
+                        }
+                    } else {
+                        // Options are other Pinyins
+                        options = [pinyin];
+                        while(options.length < 4) {
+                            const rChar = chars[Math.floor(Math.random() * chars.length)];
+                            const rPinyin = cnchar.spell(rChar, 'tone');
+                            if(!options.includes(rPinyin) && rPinyin !== pinyin) options.push(rPinyin);
+                        }
+                    }
+                    // Shuffle
+                    options.sort(() => Math.random() - 0.5);
+                    
+                    quizSet.push({ targetChar, pinyin, type, options });
+                }
+                setQuestions(quizSet);
+                
+                // Only play audio prompt if it's 'choose-hanzi' type (Listen mode)
+                if(quizSet.length > 0 && quizSet[0].type === 'choose-hanzi') {
+                     setTimeout(() => playAudio(quizSet[0].targetChar), 500);
+                }
+            };
+
+            const handleAnswer = (selectedOption) => {
+                const currentQ = questions[currentIndex];
+                let isCorrect = false;
+                
+                if (currentQ.type === 'choose-hanzi') {
+                    isCorrect = selectedOption === currentQ.targetChar;
+                } else {
+                    isCorrect = selectedOption === currentQ.pinyin;
+                }
+
+                if(isCorrect) {
+                    playAudio("对啦", false);
+                    setScore(prev => prev + 1);
+                    setMascotStatus('success');
+                    if(currentIndex < questions.length - 1) {
+                         setCurrentIndex(prev => prev + 1);
+                         setTimeout(() => {
+                             setMascotStatus('idle');
+                             const nextQ = questions[currentIndex+1];
+                             if (nextQ.type === 'choose-hanzi') {
+                                playAudio(nextQ.targetChar);
+                             }
+                         }, 1000);
+                    } else {
+                        setIsFinished(true);
+                        playAudio("测试完成", false);
+                    }
+                } else {
+                    playAudio("再试一次", false);
+                    setAnimState('animate-shake');
+                    setTimeout(() => setAnimState(''), 500);
+                }
+            };
+
+            const replayAudio = () => {
+                if(!isFinished && questions[currentIndex]) {
+                    playAudio(questions[currentIndex].targetChar);
+                }
+            };
+
+            const restartQuiz = () => {
+                setIsFinished(false);
+                setScore(0);
+                setCurrentIndex(0);
+                setAnimState('');
+                generateQuiz();
+            };
+
+            const currentQ = questions[currentIndex];
+
+            return (
+                <div className="fixed inset-0 z-[300] bg-white/95 backdrop-blur-xl flex flex-col items-center animate-pop p-4">
+                     <div className="w-full flex justify-between items-center mb-6">
+                        <button onClick={onClose} className="bg-gray-100 p-2 rounded-full text-xl w-10 h-10 shadow-sm">✕</button>
+                        <h2 className="text-xl font-black text-qy-text-pink font-chinese">小博士测试</h2>
+                        <div className="w-10"></div>
+                    </div>
+
+                    {!isFinished && currentQ ? (
+                        <div className="flex flex-col items-center w-full max-w-sm mt-4">
+                            <div className="w-full bg-pink-100 rounded-full h-4 mb-8">
+                                <div className="bg-qy-pink h-4 rounded-full transition-all duration-500" style={{width: `${(currentIndex / questions.length) * 100}%`}}></div>
+                            </div>
+
+                            {currentQ.type === 'choose-hanzi' ? (
+                                // Type 1: Listen/Pinyin -> Choose Hanzi
+                                <div className="bg-white border-4 border-pink-100 rounded-3xl p-8 mb-10 shadow-lg flex flex-col items-center cursor-pointer hover:scale-105 transition-transform" onClick={replayAudio}>
+                                    <div className="text-6xl mb-4">🔊</div>
+                                    <div className="text-4xl font-black font-rounded text-qy-text-pink">
+                                        {currentQ.pinyin}
+                                    </div>
+                                    <p className="text-gray-400 text-sm mt-2 font-bold">点击听发音</p>
+                                </div>
+                            ) : (
+                                // Type 2: See Hanzi -> Choose Pinyin
+                                <div className="bg-white border-4 border-pink-100 rounded-3xl p-8 mb-10 shadow-lg flex flex-col items-center hover:scale-105 transition-transform">
+                                    <div className="text-8xl font-chinese text-qy-text-pink mb-2">
+                                        {currentQ.targetChar}
+                                    </div>
+                                    <p className="text-gray-400 text-sm mt-2 font-bold">选择正确的拼音</p>
+                                </div>
+                            )}
+
+                            <div className={`grid grid-cols-2 gap-4 w-full ${animState}`}>
+                                {currentQ.options.map((opt, i) => (
+                                    <button 
+                                        key={i}
+                                        onClick={() => handleAnswer(opt)}
+                                        className={`aspect-square bg-white border-2 border-pink-100 rounded-2xl shadow-sm hover:bg-qy-pink hover:text-white hover:scale-105 active:scale-95 transition-all flex items-center justify-center
+                                            ${currentQ.type === 'choose-hanzi' ? 'text-4xl font-chinese' : 'text-2xl font-black font-rounded'}`}
+                                    >
+                                        {opt}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="flex flex-col items-center justify-center h-full pb-20">
+                            <div className="text-8xl mb-6 animate-tada">🏆</div>
+                            <h3 className="text-3xl font-black text-qy-text-pink mb-2">测试完成！</h3>
+                            <p className="text-xl text-gray-500 font-bold mb-8">得分: {score} / {questions.length}</p>
+                            
+                            <div className="bg-pink-50 p-6 rounded-2xl text-center mb-8 border border-pink-100">
+                                <p className="text-lg font-bold text-pink-500">
+                                    {score === 5 ? "哇！你是汉字小天才！🌟" : 
+                                     score >= 3 ? "真棒！继续加油哦！💪" : "没关系，多练习会更棒！🌱"}
+                                </p>
+                            </div>
+
+                            <div className="flex gap-4 mt-4">
+                                <button onClick={onClose} className="px-6 py-3 bg-white text-gray-500 border-2 border-gray-200 rounded-full font-bold text-lg shadow-sm hover:bg-gray-50 active:scale-95 transition-transform">
+                                    返回主页
+                                </button>
+                                <button onClick={restartQuiz} className="px-8 py-3 bg-qy-text-pink text-white rounded-full font-bold text-lg shadow-lg hover:scale-105 active:scale-95 transition-transform">
+                                    再玩一次
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
 
         const MiZiGe = () => (
             <svg viewBox="0 0 300 300" style={{ width: '100%', height: '100%' }}>
@@ -666,7 +741,15 @@
                             onLoadCharDataSuccess: (data) => {
                                 writer.showCharacter(); 
                                 if (mode === 'animate') {
-                                    writer.animateCharacter({ loop: true });
+                                    // Recursive loop function for continuous animation
+                                    const loopAnimation = () => {
+                                        writer.animateCharacter({
+                                            onComplete: () => {
+                                                setTimeout(loopAnimation, 1000); // Wait 1s then restart
+                                            }
+                                        });
+                                    };
+                                    loopAnimation();
                                 } else if (mode === 'quiz') {
                                     writer.quiz({
                                         onMistake: onMistake,
@@ -700,330 +783,188 @@
         };
 
         const HanziView = ({ setMascotStatus }) => {
-            const [inputValue, setInputValue] = useState('');
             const [charData, setCharData] = useState(null);
             const [selectedPinyin, setSelectedPinyin] = useState('');
             const [mode, setMode] = useState('animate'); 
             const [feedback, setFeedback] = useState(''); 
             const [error, setError] = useState(null);
             const [showPinyinSelector, setShowPinyinSelector] = useState(false);
+            const [showQuiz, setShowQuiz] = useState(false);
+            const [associatedWords, setAssociatedWords] = useState([]);
 
             useEffect(() => {
                 setTimeout(() => handleSearch('乔'), 100);
             }, []);
 
-            const handleSearch = (charOverride) => {
+            const handleSearch = (char) => {
                 setError(null);
                 setFeedback('');
                 setMascotStatus('idle');
-                const text = typeof charOverride === 'string' ? charOverride : inputValue;
+                setAssociatedWords([]);
                 
-                // Audio: Teacher Voice
-                if (!text) {
-                    playAudio("请输入一个汉字，我来帮你学习", false, false);
+                if (!char || !/[\u4e00-\u9fa5]/.test(char)) {
+                    setError('请输入有效的汉字');
                     return;
                 }
-
-                const char = text.trim()[0]; 
-                if (!/[\u4e00-\u9fa5]/.test(char)) {
-                    setError('请输入中文汉字哦~');
-                    return;
-                }
+                
                 try {
-                    if (typeof cnchar === 'undefined') throw new Error('Loading...');
                     const pinyins = cnchar.spell(char, 'array', 'tone');
-                    const strokeNames = cnchar.stroke(char, 'order', 'name');
                     const strokesCount = cnchar.stroke(char);
-                    const radical = cnchar.radical(char);
                     
+                    let words = [];
+                    if (cnchar.words) {
+                         const rawWords = cnchar.words(char);
+                         if(Array.isArray(rawWords)) {
+                             words = rawWords.filter(w => w !== char).slice(0, 3);
+                         }
+                    }
+
                     setCharData({
                         char,
                         pinyins: Array.isArray(pinyins) ? pinyins : [pinyins],
-                        strokeNames: Array.isArray(strokeNames) ? strokeNames : [],
                         strokesCount,
-                        radical,
                         id: Date.now() 
                     });
+                    
+                    setAssociatedWords(words);
                     setSelectedPinyin(Array.isArray(pinyins) ? pinyins[0] : pinyins);
                     setMode('animate'); 
-                    setInputValue(''); 
-                    if(typeof charOverride === 'string') setInputValue(char);
-
-                    // Audio: Teacher Voice (Read Character)
-                    playAudio(char, false, false);
-
+                    playAudio(char, false);
                 } catch (e) {
                     setError('加载失败，请检查网络~');
+                    console.error(e);
                 }
             };
 
             const handleComplete = () => {
                 setFeedback('太棒了！💯');
                 setMascotStatus('success');
-                // Audio: Puppy Voice (Praise)
-                playAudio("汪汪！乔依写得真好！", true, false);
+                playAudio("写得真好", false);
                 setTimeout(() => setMascotStatus('idle'), 3000);
             };
 
             const readPinyin = (p) => {
                 setSelectedPinyin(p); 
-                // Audio: Teacher Voice
-                playAudio(charData.char, false, false);
+                playAudio(charData.char, false);
             };
 
-            // Audio: Read stroke name
-            const readStroke = (name) => {
-                playAudio(name, false, false);
-            }
-
-            // Callback from Pinyin Selector
             const handleSelectFromPinyin = (char) => {
                 setShowPinyinSelector(false);
-                setInputValue(char);
                 handleSearch(char);
             };
 
             return (
-                <div className="w-full max-w-lg px-4 flex flex-col items-center pt-2 pb-32">
-                    {/* Search */}
-                    <div className="w-full flex gap-3 mb-4 relative z-10">
-                        <div className="flex-1 bg-white rounded-full shadow-sm border-2 border-qy-pink flex items-center px-4 focus-within:ring-4 ring-pink-100 transition-all">
-                            {/* Clickable Magnifying Glass for Pinyin Selector */}
-                            <button 
-                                onClick={() => setShowPinyinSelector(true)}
-                                className="text-qy-pink text-xl hover:scale-125 transition-transform active:scale-90"
-                                aria-label="Open Pinyin Selector"
-                            >
-                                🔍
-                            </button>
-                            <input 
-                                type="text" 
-                                className="w-full py-2 px-2 text-xl font-chinese text-center outline-none bg-transparent placeholder-pink-200 text-qy-text-pink"
-                                placeholder="输入汉字..."
-                                value={inputValue}
-                                onChange={(e) => setInputValue(e.target.value)}
-                                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                                maxLength={1}
-                            />
-                        </div>
-                        <button onClick={() => handleSearch()} className="bg-qy-text-pink hover:bg-pink-600 text-white font-bold py-2 px-6 rounded-full shadow-md active:scale-95 border-2 border-transparent">
-                            学习
-                        </button>
-                    </div>
-
-                    {/* PINYIN SELECTOR MODAL */}
+                <div className="w-full max-w-lg px-4 flex flex-col items-center pt-1 pb-32">
                     {showPinyinSelector && (
                         <PinyinSelector 
                             onClose={() => setShowPinyinSelector(false)} 
                             onSelectChar={handleSelectFromPinyin} 
                         />
                     )}
-
+                    {showQuiz && (
+                        <HanziQuiz 
+                            onClose={() => setShowQuiz(false)}
+                            setMascotStatus={setMascotStatus}
+                        />
+                    )}
                     {error && <div className="w-full bg-white text-qy-text-pink px-4 py-3 rounded-2xl mb-6 text-sm font-bold text-center border-2 border-pink-100 shadow-sm">{error}</div>}
-
-                    {charData ? (
-                        <div className="w-full flex flex-col items-center">
-                            <div className="flex flex-wrap justify-center gap-3 mb-6">
-                                {charData.pinyins.map((p, idx) => (
-                                    <button key={idx} onClick={() => readPinyin(p)} className={`px-5 py-2 rounded-2xl text-xl font-black font-rounded transition-all border-b-4 ${selectedPinyin === p ? 'bg-qy-pink text-white border-pink-400 scale-105' : 'bg-white text-pink-300 border-pink-100 hover:bg-pink-50'}`}>
-                                        {p}
-                                    </button>
-                                ))}
-                                <button onClick={() => playAudio(charData.char, false, false)} className="w-10 h-10 flex items-center justify-center bg-white text-qy-text-pink rounded-full shadow-sm hover:scale-110 border-2 border-pink-100">🔊</button>
+                    
+                    <div className="w-full flex flex-col items-center animate-pop">
+                        {/* Control Row: [Search] [Pinyin] [Test] */}
+                        <div className="w-full flex items-center justify-between gap-2 mb-4 relative z-10 px-1">
+                             {/* Left: Search */}
+                            <div className="shrink-0">
+                                <button 
+                                    onClick={() => setShowPinyinSelector(true)}
+                                    className="h-12 w-16 bg-qy-pink text-white rounded-2xl shadow-md active:scale-95 transition-all flex items-center justify-center border-b-4 border-pink-300"
+                                >
+                                    <span className="text-2xl">🔍</span>
+                                </button>
                             </div>
 
-                            <div className="relative mb-8 w-full flex justify-center items-end">
-                                <div className="relative">
-                                    <HanziPlayer 
-                                        key={charData.id + mode} 
-                                        char={charData.char} mode={mode}
-                                        onMistake={() => {setFeedback('加油！'); setTimeout(()=>setFeedback(''), 1000)}}
-                                        onCorrect={() => {setFeedback('对啦！'); setTimeout(()=>setFeedback(''), 800)}}
-                                        onComplete={handleComplete}
-                                    />
-                                    {feedback && <div className="absolute -top-16 left-1/2 transform -translate-x-1/2 pointer-events-none z-30 w-full text-center"><span className="bg-qy-text-pink text-white px-4 py-2 rounded-xl font-bold shadow-xl text-lg animate-bounce border-2 border-white">{feedback}</span></div>}
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4 w-full mb-8 max-w-xs">
-                                <button onClick={() => setMode('animate')} className={`py-3 rounded-2xl font-bold transition-all shadow-md active:scale-95 flex items-center justify-center gap-2 text-lg border-b-4 ${mode === 'animate' ? 'bg-qy-pink text-white border-pink-400' : 'bg-white text-pink-400 border-pink-100'}`}>👀 看动画</button>
-                                <button onClick={() => setMode('quiz')} className={`py-3 rounded-2xl font-bold transition-all shadow-md active:scale-95 flex items-center justify-center gap-2 text-lg border-b-4 ${mode === 'quiz' ? 'bg-qy-text-pink text-white border-pink-700' : 'bg-white text-pink-400 border-pink-100'}`}>✍️ 写写看</button>
-                            </div>
-                            
-                            <div className="w-full mb-6 bg-white p-4 rounded-3xl shadow-sm border border-pink-100">
-                                <p className="text-xs text-pink-400 font-bold uppercase mb-3 ml-1">🎨 笔画顺序 ({charData.strokesCount}) - 点击读音</p>
-                                <div className="flex flex-wrap gap-2 w-full px-1">
-                                    {charData.strokeNames.map((name, i) => {
-                                        const displayName = typeof name === 'string' ? name.split('').join(' ') : name;
-                                        return (
-                                            <button 
-                                                key={i} 
-                                                onClick={() => readStroke(typeof name === 'string' ? name : '')}
-                                                className="bg-pink-100 text-pink-600 px-3 py-1 rounded-full text-sm font-bold border border-pink-200 hover:bg-pink-200 active:scale-95 transition-colors"
-                                            >
-                                                <span className="text-[10px] opacity-60 mr-1">{i + 1}.</span>
-                                                {displayName}
+                            {/* Center: Pinyin */}
+                            <div className="flex-1 flex justify-center overflow-x-auto no-scrollbar">
+                                {charData && (
+                                    <div className="flex items-center gap-2 py-1">
+                                        {charData.pinyins.map((p, idx) => (
+                                            <button key={idx} onClick={() => readPinyin(p)} className={`h-11 px-4 rounded-xl text-lg font-black font-rounded transition-all border-b-4 shrink-0 whitespace-nowrap shadow-sm flex items-center justify-center ${selectedPinyin === p ? 'bg-white text-qy-text-pink border-qy-text-pink ring-2 ring-pink-100 scale-105' : 'bg-white text-gray-900 border-pink-200 hover:border-pink-300'}`}>
+                                                {p}
                                             </button>
-                                        )
-                                    })}
-                                </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Right: Test */}
+                            <div className="flex-1 flex justify-end max-w-[80px]">
+                                <button 
+                                    onClick={() => setShowQuiz(true)}
+                                    className="h-11 px-3 bg-white text-qy-text-purple border-2 border-purple-200 rounded-xl shadow-sm hover:bg-purple-50 active:scale-95 transition-all flex items-center gap-1 w-full justify-center"
+                                >
+                                    <span className="text-xl">🎓</span>
+                                    <span className="font-bold text-sm hidden sm:inline">测试</span>
+                                </button>
                             </div>
                         </div>
-                    ) : null}
+
+                        {charData ? (
+                            <>
+                                <div className="relative mb-6 w-full flex justify-center items-end">
+                                    <div className="relative">
+                                        <HanziPlayer 
+                                            key={charData.id + mode} 
+                                            char={charData.char} mode={mode}
+                                            onMistake={() => {setFeedback('加油！'); setTimeout(()=>setFeedback(''), 1000)}}
+                                            onCorrect={() => {setFeedback('对啦！'); setTimeout(()=>setFeedback(''), 800)}}
+                                            onComplete={handleComplete}
+                                        />
+                                        {feedback && <div className="absolute -top-16 left-1/2 transform -translate-x-1/2 pointer-events-none z-30 w-full text-center"><span className="bg-qy-text-pink text-white px-4 py-2 rounded-xl font-bold shadow-xl text-lg animate-bounce border-2 border-white">{feedback}</span></div>}
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4 w-full mb-8 max-w-xs">
+                                    <button onClick={() => setMode('animate')} className={`py-3 rounded-2xl font-bold transition-all shadow-md active:scale-95 flex items-center justify-center gap-2 text-lg border-b-4 ${mode === 'animate' ? 'bg-qy-pink text-white border-pink-400' : 'bg-white text-pink-400 border-pink-100'}`}>👀 看动画</button>
+                                    <button onClick={() => setMode('quiz')} className={`py-3 rounded-2xl font-bold transition-all shadow-md active:scale-95 flex items-center justify-center gap-2 text-lg border-b-4 ${mode === 'quiz' ? 'bg-qy-text-pink text-white border-pink-700' : 'bg-white text-pink-400 border-pink-100'}`}>✍️ 写写看</button>
+                                </div>
+                                <div className="w-full mb-6 bg-white p-5 rounded-3xl shadow-sm border border-pink-100 relative overflow-hidden">
+                                    <div className="absolute -right-4 -top-4 text-8xl opacity-5 pointer-events-none">📖</div>
+                                    <p className="text-xs text-pink-400 font-bold uppercase mb-4 ml-1">🔗 联想组词 (Word Association)</p>
+                                    {associatedWords.length > 0 ? (
+                                        <div className="flex flex-wrap gap-3 justify-center">
+                                            {associatedWords.map((word, i) => (
+                                                <button 
+                                                    key={i}
+                                                    onClick={() => playAudio(word, false)}
+                                                    className="px-4 py-2 bg-pink-50 text-qy-text-pink rounded-xl font-chinese text-xl font-bold border border-pink-100 hover:bg-pink-100 hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
+                                                >
+                                                    <span>{word}</span>
+                                                    <span className="text-xs opacity-50">🔊</span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="text-center text-gray-400 italic py-2">
+                                            暂无常见组词
+                                        </div>
+                                    )}
+                                </div>
+                            </>
+                        ) : null}
+                    </div>
                 </div>
             );
         };
 
-        // --- NEW COMPONENT: ENGLISH WRITER (CANVAS TRACING) ---
-        const EnglishWriter = ({ letter, isUpper, onComplete }) => {
-            const canvasRef = useRef(null);
-            const [isDrawing, setIsDrawing] = useState(false);
-            const [hasDrawn, setHasDrawn] = useState(false);
-            const displayChar = isUpper ? letter.toUpperCase() : letter.toLowerCase();
-
-            useEffect(() => {
-                const canvas = canvasRef.current;
-                const ctx = canvas.getContext('2d');
-                // Handle High DPI
-                const dpr = window.devicePixelRatio || 1;
-                
-                // FIX: Use offsetWidth/Height to get the correct layout size (320px) 
-                // instead of getBoundingClientRect which might be scaled down by the entry animation.
-                const width = canvas.offsetWidth;
-                const height = canvas.offsetHeight;
-                
-                canvas.width = width * dpr;
-                canvas.height = height * dpr;
-                
-                ctx.scale(dpr, dpr);
-                ctx.lineCap = 'round';
-                ctx.lineJoin = 'round';
-                ctx.strokeStyle = '#6D28D9'; // Drawing color (Purple)
-                ctx.lineWidth = 12;
-            }, []); // Init only
-
-            const getPos = (e) => {
-                const canvas = canvasRef.current;
-                const rect = canvas.getBoundingClientRect();
-                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-                
-                // Calculate scale factor in case visual size != logical size (e.g. during animation or css scaling)
-                const scaleX = canvas.offsetWidth / rect.width;
-                const scaleY = canvas.offsetHeight / rect.height;
-
-                return {
-                    x: (clientX - rect.left) * scaleX,
-                    y: (clientY - rect.top) * scaleY
-                };
-            };
-
-            const startDrawing = (e) => {
-                e.preventDefault(); // Prevent scroll on touch
-                setIsDrawing(true);
-                setHasDrawn(true);
-                const ctx = canvasRef.current.getContext('2d');
-                const {x, y} = getPos(e);
-                ctx.beginPath();
-                ctx.moveTo(x, y);
-            };
-
-            const draw = (e) => {
-                if (!isDrawing) return;
-                e.preventDefault();
-                const ctx = canvasRef.current.getContext('2d');
-                const {x, y} = getPos(e);
-                ctx.lineTo(x, y);
-                ctx.stroke();
-            };
-
-            const stopDrawing = () => {
-                setIsDrawing(false);
-                const ctx = canvasRef.current.getContext('2d');
-                ctx.closePath();
-            };
-
-            const clearCanvas = () => {
-                const canvas = canvasRef.current;
-                const ctx = canvas.getContext('2d');
-                // Reset canvas by setting width/height (this clears it and resets state)
-                const dpr = window.devicePixelRatio || 1;
-                const width = canvas.offsetWidth;
-                const height = canvas.offsetHeight;
-                canvas.width = width * dpr;
-                canvas.height = height * dpr;
-                
-                // Restore context settings lost by reset
-                ctx.scale(dpr, dpr);
-                ctx.lineCap = 'round';
-                ctx.lineJoin = 'round';
-                ctx.strokeStyle = '#6D28D9';
-                ctx.lineWidth = 12;
-                
-                setHasDrawn(false);
-            };
-
-            // Simple validation simulation
-            const checkWriting = () => {
-                if(hasDrawn) {
-                    onComplete();
-                    // Optional: Visual flair
-                }
-            };
-
-            return (
-                <div className="w-full flex flex-col items-center">
-                    {/* Notebook Paper Container - Removed Lines */}
-                    <div className="relative w-80 h-80 rounded-3xl overflow-hidden shadow-inner border-4 border-white bg-white">
-                        
-                        {/* Guide Letter (Behind Canvas) */}
-                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                             <span className="text-[12rem] font-handwriting text-gray-200 translate-y-[-10%]" style={{fontFamily: '"Varela Round", sans-serif'}}>
-                                {displayChar}
-                             </span>
-                        </div>
-
-                        {/* Drawing Canvas */}
-                        <canvas 
-                            ref={canvasRef}
-                            className="absolute inset-0 w-full h-full touch-none cursor-crosshair z-10"
-                            onMouseDown={startDrawing}
-                            onMouseMove={draw}
-                            onMouseUp={stopDrawing}
-                            onMouseLeave={stopDrawing}
-                            onTouchStart={startDrawing}
-                            onTouchMove={draw}
-                            onTouchEnd={stopDrawing}
-                        />
-                    </div>
-                    
-                    {/* Controls */}
-                    <div className="flex gap-4 mt-6">
-                        <button onClick={clearCanvas} className="w-14 h-14 bg-red-100 text-red-500 rounded-full flex items-center justify-center text-2xl shadow-sm border border-red-200 active:scale-95 transition-transform">
-                            🗑️
-                        </button>
-                        <button onClick={checkWriting} className={`flex-1 px-6 bg-qy-text-purple text-white rounded-full font-bold text-lg shadow-md active:scale-95 transition-all border-2 border-transparent ${!hasDrawn ? 'opacity-50 grayscale' : ''}`}>
-                            ✨ 完成 Check
-                        </button>
-                    </div>
-                </div>
-            );
-        }
-
-        // --- ENGLISH VIEW COMPONENTS (Updated) ---
-
         const EnglishView = ({ setMascotStatus }) => {
             const [selectedItem, setSelectedItem] = useState(null); 
             const [gameStatus, setGameStatus] = useState('playing'); 
-            const [activeTab, setActiveTab] = useState('learn'); // 'learn' | 'write' | 'quiz'
-            const [writeCase, setWriteCase] = useState('upper'); // 'upper' | 'lower'
+            const [activeTab, setActiveTab] = useState('learn'); 
 
             const selectLetter = (item) => {
                 setSelectedItem(item);
                 setGameStatus('playing');
-                setActiveTab('learn'); // Reset to Learn
+                setActiveTab('learn'); 
                 setMascotStatus('idle');
-                playAudio(item.id, false, true);
+                playAudio(item.id, true);
             };
 
             const closeModal = () => {
@@ -1032,7 +973,7 @@
 
             const playLetterAudio = () => {
                 if(!selectedItem) return;
-                playAudio(selectedItem.id, false, true);
+                playAudio(selectedItem.id, true);
             };
 
             const checkAnswer = (letter) => {
@@ -1040,25 +981,16 @@
                 if (letter === selectedItem.id || letter === selectedItem.id.toLowerCase()) {
                     setGameStatus('success');
                     setMascotStatus('success');
-                    playAudio(selectedItem.word, false, true, true); 
-                    playAudio(selectedItem.meaning, false, false, false);
-                    playAudio("Good job, Winnie!", true, true, false);
+                    playAudio(selectedItem.word, true); 
+                    playAudio(selectedItem.meaning, false);
                     setTimeout(() => setMascotStatus('idle'), 4000); 
                 } else {
-                    playAudio("Try again!", false, true, true);
+                    playAudio("Try again", true);
                 }
             };
 
-            const handleWriteComplete = () => {
-                 setMascotStatus('success');
-                 playAudio("Great writing!", true, true);
-                 setTimeout(() => setMascotStatus('idle'), 2000);
-            };
-
             return (
-                <div className="w-full max-w-lg px-4 flex flex-col items-center pt-2 pb-32">
-                    
-                    {/* Grid List */}
+                <div className="w-full max-w-lg px-4 flex flex-col items-center pt-1 pb-32">
                     <div className="w-full max-w-2xl">
                         <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
                             {PHONICS_DATA.map(item => (
@@ -1076,15 +1008,10 @@
                         </div>
                     </div>
 
-                    {/* FOCUS MODAL - TABBED INTERFACE */}
                     {selectedItem && (
                         <div className="fixed inset-0 z-[150] bg-gradient-to-br from-purple-50 via-white to-pink-50 w-screen h-screen overflow-y-auto overscroll-contain animate-pop flex flex-col">
-                            
-                            {/* Background Elements */}
                             <div className="absolute top-[-10%] right-[-10%] w-[50vh] h-[50vh] bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-float pointer-events-none"></div>
                             <div className="absolute bottom-[-10%] left-[-10%] w-[50vh] h-[50vh] bg-pink-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-float pointer-events-none" style={{animationDelay: '1.5s'}}></div>
-
-                            {/* Header: Back & Title */}
                             <div className="w-full flex items-center justify-between p-6 z-[160]">
                                 <button 
                                     onClick={closeModal}
@@ -1095,14 +1022,11 @@
                                 <div className="text-3xl font-black text-qy-text-purple font-rounded tracking-wider">
                                     {selectedItem.id}{selectedItem.id.toLowerCase()}
                                 </div>
-                                <div className="w-10"></div> {/* Spacer */}
+                                <div className="w-10"></div>
                             </div>
 
-                            {/* Main Content Area */}
                             <div className="flex-1 w-full z-10 flex flex-col items-center py-4 relative overflow-y-auto">
                                 <div className="w-full max-w-md px-4 flex flex-col items-center gap-6">
-
-                                    {/* TAB 1: LEARN */}
                                     {activeTab === 'learn' && (
                                         <div className="animate-pop w-full flex flex-col items-center">
                                             <div className="relative group mb-6">
@@ -1129,32 +1053,6 @@
                                         </div>
                                     )}
 
-                                    {/* TAB 2: WRITE */}
-                                    {activeTab === 'write' && (
-                                        <div className="animate-pop w-full flex flex-col items-center">
-                                            {/* Case Toggle */}
-                                            <div className="flex bg-white rounded-full p-1 shadow-sm border border-purple-100 mb-6">
-                                                <button onClick={()=>setWriteCase('upper')} className={`px-6 py-2 rounded-full font-bold transition-all ${writeCase==='upper' ? 'bg-qy-purple text-purple-900 shadow-sm' : 'text-gray-400'}`}>
-                                                    大写 {selectedItem.id}
-                                                </button>
-                                                <button onClick={()=>setWriteCase('lower')} className={`px-6 py-2 rounded-full font-bold transition-all ${writeCase==='lower' ? 'bg-qy-purple text-purple-900 shadow-sm' : 'text-gray-400'}`}>
-                                                    小写 {selectedItem.id.toLowerCase()}
-                                                </button>
-                                            </div>
-                                            
-                                            {/* Writing Canvas Component */}
-                                            <EnglishWriter 
-                                                key={selectedItem.id + writeCase} // Reset on change
-                                                letter={selectedItem.id} 
-                                                isUpper={writeCase === 'upper'} 
-                                                onComplete={handleWriteComplete}
-                                            />
-                                            
-                                            <p className="mt-4 text-purple-400 text-sm font-bold">👆 Follow the lines and trace carefully!</p>
-                                        </div>
-                                    )}
-
-                                    {/* TAB 3: QUIZ */}
                                     {activeTab === 'quiz' && (
                                         <div className="animate-pop w-full flex flex-col items-center">
                                             <div className="w-full bg-white/60 backdrop-blur-md rounded-3xl p-6 shadow-xl border border-white/50 flex flex-col items-center">
@@ -1184,20 +1082,14 @@
                                             </div>
                                         </div>
                                     )}
-
                                 </div>
                             </div>
 
-                            {/* Bottom Tab Bar */}
                             <div className="w-full bg-white/90 backdrop-blur-md border-t border-purple-100 pb-[env(safe-area-inset-bottom)] z-[160]">
                                 <div className="flex justify-around items-center p-2">
                                     <button onClick={() => setActiveTab('learn')} className={`flex flex-col items-center p-2 rounded-2xl w-20 transition-all ${activeTab === 'learn' ? 'text-qy-text-purple bg-purple-50' : 'text-gray-400'}`}>
                                         <span className="text-2xl mb-1">👀</span>
                                         <span className="text-xs font-bold">Learn</span>
-                                    </button>
-                                    <button onClick={() => setActiveTab('write')} className={`flex flex-col items-center p-2 rounded-2xl w-20 transition-all ${activeTab === 'write' ? 'text-qy-text-purple bg-purple-50' : 'text-gray-400'}`}>
-                                        <span className="text-2xl mb-1">✍️</span>
-                                        <span className="text-xs font-bold">Write</span>
                                     </button>
                                     <button onClick={() => setActiveTab('quiz')} className={`flex flex-col items-center p-2 rounded-2xl w-20 transition-all ${activeTab === 'quiz' ? 'text-qy-text-purple bg-purple-50' : 'text-gray-400'}`}>
                                         <span className="text-2xl mb-1">🧩</span>
@@ -1205,63 +1097,52 @@
                                     </button>
                                 </div>
                             </div>
-
                         </div>
                     )}
                 </div>
             );
         };
 
-        // --- MAIN APP ---
-
         const App = () => {
-            const [currentMode, setCurrentMode] = useState('hanzi'); // 'hanzi' | 'english'
+            const [currentMode, setCurrentMode] = useState('hanzi');
             const [mascotStatus, setMascotStatus] = useState('idle');
 
-            // Handle Theme switching on Body
             useEffect(() => {
                 if (currentMode === 'hanzi') {
-                    document.body.className = 'bg-pink-50 transition-colors duration-500';
+                    document.body.className = 'bg-pattern-hanzi transition-colors duration-500';
                 } else {
-                    document.body.className = 'bg-purple-50 transition-colors duration-500';
+                    document.body.className = 'bg-pattern-english transition-colors duration-500';
                 }
             }, [currentMode]);
 
             return (
                 <div className="min-h-screen flex flex-col items-center relative overflow-hidden">
-                    
-                    {/* Top Tab Bar - Simplified with Safe Area Padding */}
-                    <div className={`w-full pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))] px-4 flex items-center justify-between sticky top-0 z-40 shadow-sm transition-colors duration-300
+                    <div className={`w-full py-2 pt-[calc(0.5rem+env(safe-area-inset-top))] px-3 flex items-center justify-between sticky top-0 z-40 shadow-sm transition-colors duration-300
                         ${currentMode === 'hanzi' ? 'bg-qy-pink' : 'bg-qy-purple'}`}>
-                        
-                        {/* Title Section */}
-                        <div className="flex items-center gap-2 text-white">
-                            <span className="text-2xl drop-shadow-sm shrink-0">
+                        <div className="flex items-center gap-2 text-white overflow-hidden">
+                            <span className="text-xl drop-shadow-sm shrink-0">
                                 {currentMode === 'hanzi' ? <ChineseKnotIcon /> : '🦄'}
                             </span>
-                            <h1 className="text-lg font-black font-chinese tracking-widest drop-shadow-md truncate leading-tight">
+                            <h1 className="text-base font-black font-chinese tracking-widest drop-shadow-md truncate leading-tight">
                                 {currentMode === 'hanzi' ? '王乔依的汉字乐园' : 'Winnie\'s English Park'}
                             </h1>
                         </div>
-
-                        {/* Switcher */}
-                        <div className="bg-white/30 p-1 rounded-full flex scale-90 shrink-0">
+                        <div className="bg-white/30 p-1 rounded-full flex shrink-0 ml-2">
                             <button 
                                 onClick={() => setCurrentMode('hanzi')}
-                                className={`px-3 py-1 rounded-full text-xs font-bold transition-all whitespace-nowrap ${currentMode === 'hanzi' ? 'bg-white text-qy-text-pink shadow-sm' : 'text-white hover:bg-white/20'}`}
+                                className={`px-4 py-1.5 rounded-full text-sm font-bold transition-all whitespace-nowrap ${currentMode === 'hanzi' ? 'bg-white text-qy-text-pink shadow-sm' : 'text-white hover:bg-white/20'}`}
                             >
                                 汉字
                             </button>
                             <button 
                                 onClick={() => setCurrentMode('english')}
-                                className={`px-3 py-1 rounded-full text-xs font-bold transition-all whitespace-nowrap ${currentMode === 'english' ? 'bg-white text-qy-text-purple shadow-sm' : 'text-white hover:bg-white/20'}`}
+                                className={`px-4 py-1.5 rounded-full text-sm font-bold transition-all whitespace-nowrap ${currentMode === 'english' ? 'bg-white text-qy-text-purple shadow-sm' : 'text-white hover:bg-white/20'}`}
                             >
                                 Eng
                             </button>
                         </div>
                     </div>
 
-                    {/* Main Content Area */}
                     <div className="w-full flex justify-center relative">
                         {currentMode === 'hanzi' ? (
                             <HanziView setMascotStatus={setMascotStatus} />
@@ -1270,7 +1151,6 @@
                         )}
                     </div>
 
-                    {/* Floating Mascot (Fixed Middle Right with High Z-Index) */}
                     <div className="fixed right-4 top-1/2 -translate-y-1/2 z-[200]">
                         <Mascot mode={currentMode} status={mascotStatus} />
                     </div>
@@ -1280,6 +1160,19 @@
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
+
+        // Register Service Worker for PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(registration => {
+                        console.log('SW registered:', registration);
+                    })
+                    .catch(registrationError => {
+                        console.log('SW registration failed:', registrationError);
+                    });
+            });
+        }
     </script>
 </body>
 </html>
